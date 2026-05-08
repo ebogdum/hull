@@ -1,0 +1,4 @@
+apiVersion: hull/v1
+name: overlay-app
+version: 2.0.0
+base: ../base
