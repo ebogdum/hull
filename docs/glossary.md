@@ -120,7 +120,7 @@ An external command that integrates with hull's CLI. Plugins live in `~/.config/
 
 ## Policy
 
-A rule that runs against a rendered manifest. Hull packages can carry `policies/` (Rego or hull-native YAML). `hull policy run <pkg>` evaluates them. → [Policies](cli/policy.md).
+A rule that runs against a rendered manifest. Hull packages can carry `policies/` (hull-native declarative YAML). `hull policy run <pkg>` evaluates them. → [Policies](cli/policy.md).
 
 ## .prov file
 

@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-`hull policy` evaluates package-defined policy rules (under `policies/`) against the rendered manifest. Rules can be Hull policy YAML (declarative match-and-require) or Rego (full Open Policy Agent expressiveness).
+`hull policy` evaluates package-defined policy rules (under `policies/`) against the rendered manifest. Rules are Hull policy YAML (declarative match-and-require).
 
 ## When to use it
 

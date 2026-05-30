@@ -156,7 +156,7 @@ my-app/
 ├── files/                # optional — embedded files reachable from templates
 ├── notes.yaml            # optional — post-install message template
 ├── profiles/             # optional — values overlay files (--profile prod)
-├── policies/             # optional — package-level policies (Rego or hull-native)
+├── policies/             # optional — package-level policies (hull-native declarative rules)
 ├── README.md             # optional — human-facing docs
 ├── LICENSE               # optional
 └── hull.lock             # auto-generated — pinned layer/dependency digests; commit it

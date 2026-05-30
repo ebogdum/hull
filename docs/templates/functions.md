@@ -259,7 +259,7 @@ spec:
 
 ## Logic
 
-Hull's runtime exposes four logic functions: `default`, `required`, `empty`, `ternary`. There is no `eq`, `ne`, `lt`, `gt`, `and`, `or`, `not`, or `coalesce` at the expression level — those compositions belong in the YAML control-flow directives (`$if`, `$switch`) and in the values themselves (a discriminator field rather than a runtime comparison). See [Expression syntax](expressions.md#truthy-if-evaluation) for the rationale.
+Hull's runtime exposes five logic functions: `default`, `required`, `empty`, `ternary`, `omitempty`. There is no `eq`, `ne`, `lt`, `gt`, `and`, `or`, `not`, or `coalesce` at the expression level — those compositions belong in the YAML control-flow directives (`$if`, `$switch`) and in the values themselves (a discriminator field rather than a runtime comparison). See [Expression syntax](expressions.md#truthy-if-evaluation) for the rationale.
 
 | Function | Signature | Description |
 |---|---|---|
@@ -267,6 +267,7 @@ Hull's runtime exposes four logic functions: `default`, `required`, `empty`, `te
 | `required` | `value | required message` | error with message if value is nil/empty |
 | `empty` | `value | empty` | true if nil/false/0/empty-string/empty-list/empty-map |
 | `ternary` | `condition | ternary ifTrue ifFalse` | return `ifTrue` if condition is truthy, else `ifFalse` |
+| `omitempty` | `value | omitempty` | drop the surrounding map key / slice element when value is empty (instead of rendering `null`) |
 
 **Input:**
 

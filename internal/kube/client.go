@@ -3,8 +3,11 @@ package kube
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
+
+	"sigs.k8s.io/yaml"
 
 	"github.com/ebogdum/hull/internal/engine"
 	hullerr "github.com/ebogdum/hull/internal/errors"
@@ -316,6 +319,90 @@ func (c *Client) dryRunApplyResource(obj *unstructured.Unstructured) error {
 	}
 
 	return nil
+}
+
+// ServerSideDiff performs a server-side apply DRY-RUN for each resource in
+// manifests and returns two manifest strings: the current LIVE objects, and
+// the objects the API server WOULD produce after applying. Diffing live vs
+// merged is true server-side diff (kubectl-diff semantics): the merged side
+// reflects API-server defaulting, admission-webhook mutation, and other
+// server-managed fields — not just hull's locally stored copy. Resources that
+// do not yet exist contribute an empty live side (i.e. a pure creation).
+func (c *Client) ServerSideDiff(manifests string) (liveManifest, mergedManifest string, err error) {
+	resources, parseErr := ParseManifests(manifests)
+	if nil != parseErr {
+		return "", "", parseErr
+	}
+	sorted := SortByInstallOrder(resources)
+	liveDocs := make([]string, 0, len(sorted))
+	mergedDocs := make([]string, 0, len(sorted))
+	for _, obj := range sorted {
+		live, merged, rErr := c.serverSideDiffResource(obj)
+		if nil != rErr {
+			return "", "", rErr
+		}
+		if "" != strings.TrimSpace(live) {
+			liveDocs = append(liveDocs, live)
+		}
+		if "" != strings.TrimSpace(merged) {
+			mergedDocs = append(mergedDocs, merged)
+		}
+	}
+	return strings.Join(liveDocs, "---\n"), strings.Join(mergedDocs, "---\n"), nil
+}
+
+func (c *Client) serverSideDiffResource(obj *unstructured.Unstructured) (live, merged string, err error) {
+	gvr, mapErr := c.resourceForObj(obj)
+	if nil != mapErr {
+		return "", "", mapErr
+	}
+	stampHullManaged(obj)
+	ns := c.resolveNamespace(obj)
+
+	var resource dynamic.ResourceInterface
+	if "" != ns {
+		resource = c.dynamic.Resource(gvr).Namespace(ns)
+	} else {
+		resource = c.dynamic.Resource(gvr)
+	}
+
+	ctx, cancel := c.newContext()
+	defer cancel()
+
+	// Current live object (absent → a creation, empty live side).
+	liveObj, getErr := resource.Get(ctx, obj.GetName(), metav1.GetOptions{})
+	if nil == getErr {
+		live = unstructuredToYAML(liveObj)
+	} else if !k8serrors.IsNotFound(getErr) {
+		return "", "", hullerr.WrapErrorf(hullerr.ErrKube, getErr, "get live %s/%s", obj.GetKind(), obj.GetName())
+	}
+
+	data, mErr := obj.MarshalJSON()
+	if nil != mErr {
+		return "", "", hullerr.WrapError(hullerr.ErrKube, "failed to marshal resource", mErr)
+	}
+	mergedObj, applyErr := resource.Patch(ctx, obj.GetName(), types.ApplyPatchType, data, metav1.PatchOptions{
+		FieldManager: "hull",
+		Force:        boolPtr(c.forceApply),
+		DryRun:       []string{metav1.DryRunAll},
+	})
+	if nil != applyErr {
+		return "", "", hullerr.WrapErrorf(hullerr.ErrKube, applyErr, "server dry-run failed for %s/%s", obj.GetKind(), obj.GetName())
+	}
+	return live, unstructuredToYAML(mergedObj), nil
+}
+
+// unstructuredToYAML marshals an object to YAML, returning "" on error so a
+// single unmarshalable object degrades gracefully rather than aborting a diff.
+func unstructuredToYAML(obj *unstructured.Unstructured) string {
+	if nil == obj {
+		return ""
+	}
+	out, err := yaml.Marshal(obj.Object)
+	if nil != err {
+		return ""
+	}
+	return string(out)
 }
 
 // ApplyCRDs applies the CustomResourceDefinitions in `manifests` and waits

@@ -173,7 +173,7 @@ Pull once with `hull pull`, mirror archives to a local OCI registry, install off
 
 ### Compliance-driven environments (PCI, HIPAA, SOC 2)
 
-Hull's audit trail, signed packages, and SBOM generation cover the deployment-side controls these frameworks require. Combine with `hull policy` for in-package policy enforcement (Rego or hull-native rules).
+Hull's audit trail, signed packages, and SBOM generation cover the deployment-side controls these frameworks require. Combine with `hull policy` for in-package policy enforcement (hull-native declarative rules).
 
 ## Where next
 

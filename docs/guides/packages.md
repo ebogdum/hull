@@ -42,8 +42,8 @@ my-pkg/
 │   ├── dev.yaml
 │   ├── staging.yaml
 │   └── prod.yaml
-├── policies/                       # optional — package-defined policy rules (.rego or hull policy YAML)
-│   └── require-resources.rego
+├── policies/                       # optional — package-defined policy rules (hull policy YAML)
+│   └── require-resources.yaml
 ├── README.md                       # optional — human documentation, surfaced by `hull show readme`
 ├── LICENSE                         # optional
 └── hull.lock                       # auto-generated — pinned layer/require digests; commit it
@@ -175,10 +175,9 @@ The profile file's contents are merged on top of `values.yaml` and below environ
 
 ### `policies/`
 
-Optional. Package-defined policies that `hull policy run` evaluates against the rendered manifest. Two formats accepted:
+Optional. Package-defined policies that `hull policy run` evaluates against the rendered manifest:
 
 - **Hull policy YAML** — declarative match-and-require rules; suitable for "every Pod must set runAsNonRoot" or "every Service must have a selector".
-- **Rego (.rego)** — full Open Policy Agent expressiveness for custom logic.
 
 Policies live with the package so they ship with it.
 
