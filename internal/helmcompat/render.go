@@ -20,7 +20,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/Masterminds/sprig/v3"
 	hullerr "github.com/ebogdum/hull/internal/errors"
 )
 
@@ -70,7 +69,7 @@ func Render(chartPath string, opts Options) (map[string]string, error) {
 	// Functions must be registered BEFORE parsing, so the helm helpers are
 	// bound up front; tpl reads partialSources (filled during collection) via
 	// the pointer, which is safe because tpl only runs at execute time.
-	tmplSet := template.New("hull-helmcompat").Funcs(sprig.TxtFuncMap())
+	tmplSet := template.New("hull-helmcompat").Funcs(hermeticSprigFuncMap())
 	fm := template.FuncMap{}
 	var partialSources []string
 	addHelmFuncs(fm, tmplSet, &partialSources)
