@@ -175,7 +175,7 @@ The profile file's contents are merged on top of `values.yaml` and below environ
 
 ### `policies/`
 
-Optional. Package-defined policies that `hull policy run` evaluates against the rendered manifest:
+Optional. Package-defined policies that `hull policy check` evaluates against the rendered manifest:
 
 - **Hull policy YAML** — declarative match-and-require rules; suitable for "every Pod must set runAsNonRoot" or "every Service must have a selector".
 

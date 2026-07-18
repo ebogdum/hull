@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"bytes"
 	hullerr "github.com/ebogdum/hull/internal/errors"
 	"github.com/ebogdum/hull/internal/logger"
 	"github.com/ebogdum/hull/internal/netguard"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"bytes"
 
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
@@ -36,6 +37,32 @@ type OCIRegistry struct {
 	// InsecureSkipTLSVerify disables certificate validation; surfaced via
 	// `--insecure-skip-tls-verify` on the relevant CLI commands.
 	InsecureSkipTLSVerify bool
+}
+
+// OCIRegistryForRef builds an OCIRegistry for an oci:// reference, honoring the
+// operator's opt-ins: env vars (HULL_OCI_PLAIN_HTTP / HULL_OCI_INSECURE_SKIP_TLS)
+// and a per-host insecure flag recorded via `hull login --insecure`.
+func OCIRegistryForRef(ref string) *OCIRegistry {
+	reg := &OCIRegistry{
+		PlainHTTP:             "1" == os.Getenv("HULL_OCI_PLAIN_HTTP"),
+		InsecureSkipTLSVerify: "1" == os.Getenv("HULL_OCI_INSECURE_SKIP_TLS"),
+	}
+	host := ociHost(ref)
+	if store, err := LoadCredentialStore(); nil == err && "" != host {
+		if cred, ok := store.GetForHost(host); ok && cred.Insecure {
+			reg.InsecureSkipTLSVerify = true
+		}
+	}
+	return reg
+}
+
+// ociHost extracts the registry host from an oci:// reference.
+func ociHost(ref string) string {
+	trimmed := strings.TrimPrefix(ref, "oci://")
+	if i := strings.IndexAny(trimmed, "/"); i >= 0 {
+		trimmed = trimmed[:i]
+	}
+	return trimmed
 }
 
 // crossHostRedirectBlock refuses redirects that change host so credentials and
@@ -308,7 +335,18 @@ func (o *OCIRegistry) Pull(ref, destDir string) (string, error) {
 		tag = "latest"
 	}
 
-	manifest, err := oras.Copy(ctx, repo, tag, fs, tag, oras.DefaultCopyOptions)
+	// Bound each blob: a hostile registry could otherwise declare and serve a
+	// huge layer and exhaust the disk (ORAS verifies digest/size but sets no
+	// ceiling). Reject oversized descriptors before they are fetched.
+	copyOpts := oras.DefaultCopyOptions
+	copyOpts.PreCopy = func(_ context.Context, desc ocispec.Descriptor) error {
+		if desc.Size > maxArchiveSize {
+			return hullerr.NewErrorf(hullerr.ErrRegistry,
+				"OCI blob %s (%d bytes) exceeds the %d-byte limit", desc.Digest, desc.Size, maxArchiveSize)
+		}
+		return nil
+	}
+	manifest, err := oras.Copy(ctx, repo, tag, fs, tag, copyOpts)
 	if nil != err {
 		return "", hullerr.WrapError(hullerr.ErrRegistry, "failed to pull from registry", err)
 	}

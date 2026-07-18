@@ -77,16 +77,16 @@ func collectHullEnv() map[string]string {
 	}
 
 	return map[string]string{
-		"HULL_BIN":          bin,
-		"HULL_CACHE_HOME":   cacheRoot,
-		"HULL_CONFIG_HOME":  configRoot,
-		"HULL_DATA_HOME":    dataRoot,
-		"HULL_PLUGINS":      pluginsRoot,
-		"HULL_NAMESPACE":    ns,
-		"HULL_KUBECONFIG":   os.Getenv("KUBECONFIG"),
-		"HULL_KUBECONTEXT":  os.Getenv("HULL_KUBECONTEXT"),
-		"HULL_REGISTRY_CONFIG": filepath.Join(configRoot, "registry.json"),
-		"HULL_REPOSITORY_CACHE": filepath.Join(cacheRoot, "repository"),
+		"HULL_BIN":               bin,
+		"HULL_CACHE_HOME":        cacheRoot,
+		"HULL_CONFIG_HOME":       configRoot,
+		"HULL_DATA_HOME":         dataRoot,
+		"HULL_PLUGINS":           pluginsRoot,
+		"HULL_NAMESPACE":         ns,
+		"HULL_KUBECONFIG":        os.Getenv("KUBECONFIG"),
+		"HULL_KUBECONTEXT":       os.Getenv("HULL_KUBECONTEXT"),
+		"HULL_REGISTRY_CONFIG":   filepath.Join(configRoot, "registry.json"),
+		"HULL_REPOSITORY_CACHE":  filepath.Join(cacheRoot, "repository"),
 		"HULL_REPOSITORY_CONFIG": filepath.Join(configRoot, "repositories.yaml"),
 	}
 }

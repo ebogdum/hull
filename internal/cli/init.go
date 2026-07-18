@@ -13,9 +13,10 @@ import (
 // newInitCommand scaffolds a new hull package from a built-in template.
 //
 // Usage:
-//   hull init webapp myapp
-//   hull init batch myjob
-//   hull init operator my-operator
+//
+//	hull init webapp myapp
+//	hull init batch myjob
+//	hull init operator my-operator
 func newInitCommand() *cobra.Command {
 	var (
 		template string
