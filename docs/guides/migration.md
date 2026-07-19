@@ -1,5 +1,6 @@
 ---
 title: "Migrate a Helm chart to a hull package"
+nav_order: 13
 parent: "Guides"
 ---
 {% raw %}
