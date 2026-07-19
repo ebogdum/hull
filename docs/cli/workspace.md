@@ -2,64 +2,60 @@
 
 ## Synopsis
 
-`hull workspace` orchestrates multiple hull packages declared in `hull-workspace.yaml`. Subcommands install, upgrade, uninstall, plan, diff, and report status across the whole workspace using a topological order computed from `dependsOn` declarations.
+A **workspace** is a single file — `hull-workspace.yaml` — that lists several
+hull packages and how they depend on each other. Instead of installing,
+upgrading, or tearing down each release by hand, you point `hull workspace` at
+the directory holding that file and it drives every member for you in
+dependency order.
 
-## When to use it
+```yaml
+# hull-workspace.yaml
+apiVersion: hull/v1
+defaults:
+  namespace: apps            # used by any member that omits its own
+members:
+  - name: postgres
+    path: ./postgres
+  - name: api
+    path: ./api
+    dependsOn: [postgres]    # api is processed only after postgres
+```
 
-Use when many sibling packages from one repository should roll out together with explicit dependency ordering between them. For releases sourced from disparate places (different registries, paths, repos), see `hull releases`.
+Each member names a release, a package `path`, and optionally a `namespace`,
+`profile`, and a `dependsOn` list. `hull` reads the `dependsOn` edges, sorts the
+members into dependency order, and processes them:
+
+- **install** and **upgrade** run in dependency order — a member starts only
+  after everything it depends on has finished.
+- **uninstall** runs in **reverse** — dependents come down before the things
+  they depend on.
+
+Members that do not depend on each other share a level and can run concurrently
+(see `--parallel`).
+
+## Subcommands
+
+| Command | What it does |
+|---|---|
+| [`plan`](workspace-plan.md) | Print the order the members will be processed in |
+| [`install`](workspace-install.md) | Install every member in dependency order |
+| [`upgrade`](workspace-upgrade.md) | Upgrade every member (installing any that are missing) |
+| [`uninstall`](workspace-uninstall.md) | Uninstall every member in reverse order |
+| [`status`](workspace-status.md) | Show each member's revision and status |
+| [`diff`](workspace-diff.md) | Show what upgrading every member would change |
 
 ## Usage
 
 ```
-hull workspace [command]
+hull workspace <command> [flags]
 ```
 
-## Subcommands
-
-- [`hull workspace install`](workspace-install.md) — install every member in topological order
-- [`hull workspace upgrade`](workspace-upgrade.md) — upgrade every member; install if missing
-- [`hull workspace uninstall`](workspace-uninstall.md) — uninstall every member in reverse topological order
-- [`hull workspace plan`](workspace-plan.md) — print the install plan with optional level grouping
-- [`hull workspace status`](workspace-status.md) — show current revision and status of every declared member
-- [`hull workspace diff`](workspace-diff.md) — show pending changes per member
-
-## Flags
-
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | — | — | help for workspace |
-
-## Persistent flags inherited from `hull`
-
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | — | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
-
-## Examples
-
-Plan a workspace install:
-
-```sh
-hull workspace plan .
-```
-
-Install with parallelism within levels and a health-gate between levels:
-
-```sh
-hull workspace install . --parallel 4 --health-gate
-```
-
-Diff every member's pending changes:
-
-```sh
-hull workspace diff .
-```
+Every command reads `hull-workspace.yaml` from the directory given by `--dir`
+(default `.`).
 
 ## See also
 
-- [`hull-workspace.yaml` reference](../reference/hull-workspace-yaml.md)
-- [Workspaces guide](../guides/workspaces.md)
-- [`releases`](releases.md)
+- [`install`](install.md), [`upgrade`](upgrade.md), [`uninstall`](uninstall.md)
+  — the single-release commands the workspace runs once per member
+- [`plan`](plan.md), [`status`](status.md), [`diff`](diff.md) — the
+  single-release analogues of the workspace subcommands

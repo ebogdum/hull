@@ -1,12 +1,20 @@
 # hull version
 
-## Synopsis
-
-`hull version` prints the hull binary version, the Git commit it was built from, and the build date.
+`hull version` prints the version, git commit, and build date of the `hull`
+binary you are running.
 
 ## When to use it
 
-Use to confirm which version is installed.
+- To confirm which build is installed before filing a bug or following
+  version-specific docs.
+- To capture the exact commit in CI logs so a run is reproducible.
+
+## What happens
+
+1. hull prints a single line: its version, the git commit it was built from,
+   and the date it was built.
+2. The values come from the binary itself (stamped in at build time), so no
+   cluster or network access is needed.
 
 ## Usage
 
@@ -16,23 +24,27 @@ hull version [flags]
 
 ## Flags
 
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | — | — | help for version |
+Inherits the global flags (`--debug`, `--kube-context`, `--kubeconfig`,
+`-n/--namespace`); version prints locally, so they have no effect.
 
-## Persistent flags inherited from `hull`
-
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | — | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
-
-## Examples
-
-Print version:
+## Worked example
 
 ```sh
 hull version
 ```
+
+Output:
+
+```
+hull version 1.4.0 (commit a1b2c3d, built 2026-07-15T10:04:22Z)
+```
+
+A build from source without stamped values prints placeholders instead:
+
+```
+hull version dev (commit unknown, built unknown)
+```
+
+## See also
+
+- [`env`](env.md) — the resolved paths and environment hull is using

@@ -2,53 +2,98 @@
 
 ## Synopsis
 
-`hull controller crd` prints the YAML for the `HullRelease` CustomResourceDefinition to stdout. The output is the canonical CRD definition that the in-cluster controller reconciles. It is the same YAML that `hull controller install-crd` would apply, only printed instead of installed.
+`hull controller crd` prints the `HullRelease` CustomResourceDefinition as YAML
+to stdout. This is the exact definition the controller reconciles, and the same
+YAML that [`controller install-crd`](controller-install-crd.md) applies — this
+command only prints it, it never touches the cluster.
 
 ## When to use it
 
-Use when you want to inspect the CRD before installing it, commit it to a GitOps repository, or pipe it through `kubectl apply -f -` from a machine that does not have hull locally permitted to write to the cluster.
+- To read the CRD schema before you register it.
+- To commit the CRD into a GitOps repo so your delivery tool applies it.
+- To pipe it into `kubectl` from a machine that has hull but where you'd rather
+  apply through your own tooling.
 
-## What happens when you run it
+## What happens
 
-1. Hull emits the embedded CRD definition (group `hull.dev`, kind `HullRelease`) to stdout.
-2. No cluster contact, no file changes, no side effects beyond writing to stdout.
+1. Hull writes the embedded CRD definition (group `hull.dev`, kind
+   `HullRelease`) to stdout.
+2. Nothing else — no cluster contact, no files written, exit 0.
 
 ## Usage
 
 ```
-hull controller crd [flags]
+hull controller crd
 ```
 
 ## Flags
 
+Inherits the global flags.
+
 | Flag | Type | Default | Description |
 |---|---|---|---|
-| `-h, --help` | bool | false | help for crd |
+| `--debug` | — | — | print debug output while running |
+| `--kube-context` | string | (current) | Kubernetes context to use |
+| `--kubeconfig` | string | (default) | path to the kubeconfig file |
+| `-n, --namespace` | string | — | Kubernetes namespace |
 
-## Persistent flags inherited from `hull`
+(This command reads none of them; they are accepted because every hull command
+carries them.)
 
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | bool | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
+## Worked example
 
-## Examples
-
-Print the CRD to stdout for inspection:
+Print the CRD and save it for review:
 
 ```sh
-hull controller crd
+hull controller crd > hullrelease-crd.yaml
 ```
 
-Save to a file for committing into a GitOps repo:
+**Output** (`hullrelease-crd.yaml`):
 
-```sh
-hull controller crd > crds/hullrelease.yaml
+```yaml
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: hullreleases.hull.dev
+spec:
+  group: hull.dev
+  scope: Namespaced
+  names:
+    plural: hullreleases
+    singular: hullrelease
+    kind: HullRelease
+    shortNames: [hr]
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [package]
+              properties:
+                releaseName: { type: string }
+                package:     { type: string }
+                version:     { type: string }
+                profile:     { type: string }
+                values:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              properties:
+                phase:          { type: string }
+                message:        { type: string }
+                revision:       { type: integer }
+                lastTransition: { type: string }
 ```
 
-Apply with `kubectl` from a different machine:
+Apply it through kubectl instead of `install-crd`:
 
 ```sh
 hull controller crd | kubectl apply -f -
@@ -56,6 +101,6 @@ hull controller crd | kubectl apply -f -
 
 ## See also
 
-- [`controller`](controller.md)
-- [`controller install-crd`](controller-install-crd.md)
-- [`controller run`](controller-run.md)
+- [`controller install-crd`](controller-install-crd.md) — apply this CRD directly
+- [`controller run`](controller-run.md) — start the reconciler once the CRD exists
+- [`controller`](controller.md) — operator overview

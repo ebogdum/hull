@@ -2,11 +2,34 @@
 
 ## Synopsis
 
-Upgrade every release in `hull-releases.yaml`; install if missing. One invocation brings the platform graph up the first time and keeps it up-to-date thereafter.
+`hull releases upgrade` upgrades every release in your `hull-releases.yaml`, in
+dependency order, and installs any release that is not there yet. It is the
+one command you re-run to keep the whole set current: it works the first time
+(everything installs) and every time after (everything upgrades).
 
 ## When to use it
 
-Use as the canonical CI deploy command for the whole platform graph.
+- As your repeatable deploy command for the set — safe to run whether or not
+  the releases already exist.
+- After editing a package, its values, or its `set` overrides, to roll the
+  change out across the set in the right order.
+
+## What happens
+
+1. Reads the spec file (`--file`, default `hull-releases.yaml`) and sorts the
+   releases into dependency order. A cycle or unknown `dependsOn` name stops
+   here, before anything is applied.
+2. For each release in order, upgrades its package under the release `name`, in
+   the entry's `namespace` (falling back to `-n/--namespace`), applying its
+   `profile`, `values`, and `set`. A release that does not exist yet is
+   installed instead.
+3. Each release is upgraded atomically: if one fails, it rolls back to its
+   previous revision, the command stops, and the releases already processed are
+   left as they are.
+4. Prints one line per release, with its new revision number.
+
+Like `install`, this does not wait for pods to become ready between releases.
+For that, use [`hull workspace`](workspace.md) with `--health-gate`.
 
 ## Usage
 
@@ -16,35 +39,57 @@ hull releases upgrade [flags]
 
 ## Flags
 
-| Flag | Type | Default | Description |
+| Flag | Type | Default | Effect |
 |---|---|---|---|
-| `--file` | string | "hull-releases.yaml" | spec file path |
-| `-h, --help` | — | — | help for upgrade |
+| `--file` | string | `hull-releases.yaml` | read the spec from this path instead of the default |
 
-## Persistent flags inherited from `hull`
+Inherits the global flags (`--kube-context`, `--kubeconfig`, `-n/--namespace`,
+`--debug`). `-n` sets the namespace for any release that does not name its own.
 
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | — | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
+## Worked example
 
-## Examples
+**INPUT** — `hull-releases.yaml`. `postgres` and `redis` are already installed
+at revision 1; you bumped the image in `./charts/api` and now roll it out:
 
-Bring the platform up to declared versions:
+```yaml
+releases:
+  - name: postgres
+    package: ./charts/postgres
+    namespace: data
+
+  - name: redis
+    package: ./charts/redis
+    namespace: data
+
+  - name: api
+    package: ./charts/api
+    namespace: apps
+    dependsOn:
+      - postgres
+      - redis
+```
+
+**COMMAND:**
 
 ```sh
 hull releases upgrade
 ```
 
-Use a custom-named manifest file:
+**OUTPUT:**
 
-```sh
-hull releases upgrade --file ./platform.releases.yaml
 ```
+[postgres] upgraded (revision 2)
+[redis] upgraded (revision 2)
+[api] upgraded (revision 2)
+```
+
+Every release moves up one revision, in dependency order — `postgres` and
+`redis` before `api`. Had `api` not existed yet, its line would instead read
+`[api] installed (revision 1, ns apps)`.
 
 ## See also
 
-- [`releases`](releases.md)
-- [`upgrade`](upgrade.md)
+- [`releases`](releases.md) — the parent command and the spec-file format
+- [`plan`](releases-plan.md) — preview the order first
+- [`install`](releases-install.md) — first-time install of the set
+- [`upgrade`](upgrade.md) — upgrade a single release

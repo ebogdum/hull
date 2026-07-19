@@ -1,18 +1,18 @@
 # hull repo list
 
-## Synopsis
-
-`hull repo list` prints every HTTP package repository currently registered with hull on this machine: name, URL, and a brief flag indicating whether credentials or TLS material are stored. The data comes from `~/.config/hull/repositories.yaml`.
+Show the repositories you have registered.
 
 ## When to use it
 
-Use to inventory configured repos, find a repo's URL for `hull pull --repo`, or verify a `hull repo add` succeeded.
+- To confirm a [`hull repo add`](repo-add.md) took effect.
+- To look up a repository's URL, for example to pass to `hull pull --repo`.
 
-## What happens when you run it
+## What happens
 
-1. Reads `~/.config/hull/repositories.yaml`.
-2. Prints in the requested output format (table by default).
-3. No cluster contact, no network.
+Hull reads your repository list at `~/.config/hull/repositories.yaml` and
+prints every entry's name and URL. Nothing is fetched — this reads only local
+configuration, with no network or cluster access. If you have not registered
+any repositories, hull prints `No repositories configured.`
 
 ## Usage
 
@@ -22,43 +22,30 @@ hull repo list [flags]
 
 ## Flags
 
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | bool | false | help for list |
-| `-o, --output` | string | table | output format: table, json, yaml |
+| Flag | Effect |
+|---|---|
+| `-o, --output` | Choose the output format: `table` (default), `json`, or `yaml`. |
 
-## Persistent flags inherited from `hull`
+## Worked example
 
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | bool | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
+```
+$ hull repo add my-charts https://charts.example.com
+"my-charts" has been added to your repositories
 
-## Examples
-
-Default tabular view:
-
-```sh
-hull repo list
+$ hull repo list
+NAME                 URL
+my-charts            https://charts.example.com
 ```
 
-JSON for scripting:
+Get one repository's URL as JSON for scripting:
 
-```sh
-hull repo list -o json | jq '.[] | select(.name == "my-charts") | .url'
 ```
-
-YAML for diffing across machines:
-
-```sh
-hull repo list -o yaml > /tmp/repos-machine-A.yaml
+$ hull repo list -o json | jq -r '.[] | select(.name=="my-charts") | .url'
+https://charts.example.com
 ```
 
 ## See also
 
-- [`repo`](repo.md)
-- [`repo add`](repo-add.md)
-- [`repo update`](repo-update.md)
-- [`repo remove`](repo-remove.md)
+- [`repo add`](repo-add.md) — register a repository
+- [`repo update`](repo-update.md) — refresh registered repositories
+- [`search`](search.md) · [`pull`](pull.md)

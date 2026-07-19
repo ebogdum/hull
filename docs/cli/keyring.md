@@ -2,11 +2,21 @@
 
 ## Synopsis
 
-`hull keyring` manages the PGP keyring used to verify package provenance signatures. Subcommands add, list, and remove armoured public keys.
+`hull keyring` manages the set of trusted PGP public keys hull uses to verify
+package provenance. When you run a signed operation with `--verify` (for
+example `hull package verify` or `hull install --verify`), hull checks the
+package's `.prov` signature against the keys in this keyring.
 
-## When to use it
+The keyring is a per-user, per-machine directory, `~/.config/hull/keyring/`.
+There is no shared cluster-wide keyring.
 
-Use to maintain the set of trusted signers for `--verify` operations.
+## Subcommands
+
+| Command | What it does |
+|---|---|
+| [`add`](keyring-add.md) | Install a public key so its signer becomes trusted. |
+| [`list`](keyring-list.md) | Show the installed keys and their fingerprints. |
+| [`remove`](keyring-remove.md) | Delete a key, revoking trust in its signer. |
 
 ## Usage
 
@@ -14,47 +24,18 @@ Use to maintain the set of trusted signers for `--verify` operations.
 hull keyring [command]
 ```
 
-## Subcommands
-
-- [`hull keyring list`](keyring-list.md) — List keys in the hull keyring
-- [`hull keyring remove`](keyring-remove.md) — Remove a key from the hull keyring
-
-## Flags
-
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | — | — | help for keyring |
-
-## Persistent flags inherited from `hull`
-
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | — | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
-
-## Examples
-
-Add a signer's public key:
+Add a signer, confirm it landed, and later remove it:
 
 ```sh
-hull keyring add /path/to/signer.pub
-```
-
-List trusted signers:
-
-```sh
+hull keyring add ./jane.pub
 hull keyring list
-```
-
-Remove a signer by fingerprint:
-
-```sh
-hull keyring remove ABCDEF1234567890
+hull keyring remove jane.pub
 ```
 
 ## See also
 
-- [Signing guide](../guides/signing.md)
-- [`pull`](pull.md)
+- [`keyring add`](keyring-add.md) — trust a signer
+- [`keyring list`](keyring-list.md) — show trusted signers
+- [`keyring remove`](keyring-remove.md) — revoke a signer
+- [`package verify`](package-verify.md) — verify a package against the keyring
+- [`login`](login.md) — store registry credentials

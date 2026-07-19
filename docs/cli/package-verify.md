@@ -1,20 +1,25 @@
 # hull package verify
 
-## Synopsis
-
-`hull package verify` checks that a `.hull.tgz` archive's detached `.prov` signature is valid against either a specified public-key file or the local hull keyring. The signature binds the archive's SHA-256 digest to a signer's PGP key; a successful verification means the archive has not been modified since signing and the signer is one whose key you trust.
+Verify a `.hull.tgz` archive's `.prov` signature against a public key or
+keyring.
 
 ## When to use it
 
-Use to verify provenance before installing a package — particularly an archive received over a non-trusted channel (HTTP without TLS, an attached email, a USB drive). For OCI-stored or HTTP-repo packages, `hull pull --verify` and `hull install --verify` perform the same check inline; this command is for archives already on disk.
+- Before installing an archive you received out of band, to confirm it was
+  signed by a key you trust and has not been altered.
+- As a gate in CI: verify, then install only if the signature checks out.
 
-## What happens when you run it
+## What happens
 
-1. Reads the archive at `<archive.hull.tgz>` and computes its SHA-256.
-2. Reads the sibling `<archive.hull.tgz>.prov` file.
-3. Parses the cleartext-signed provenance and validates the embedded digest matches what was just computed.
-4. Validates the PGP signature against the keyring (`--keyring` if specified, else `~/.config/hull/keyring/`).
-5. Exits 0 on success; non-zero with a precise reason on any mismatch.
+1. hull reads `<archive.hull.tgz>` and its sibling `<archive.hull.tgz>.prov`
+   provenance file.
+2. It computes the archive's digest and checks it against the digest recorded
+   in the signed provenance.
+3. It validates the PGP signature using the key material in `--keyring`
+   (required) — either a single public-key file or a keyring.
+4. On success the command exits 0 and prints nothing. On any mismatch —
+   missing `.prov`, altered archive, or untrusted signer — it exits non-zero
+   with a precise reason.
 
 ## Usage
 
@@ -26,42 +31,33 @@ hull package verify <archive.hull.tgz> [flags]
 
 | Flag | Type | Default | Description |
 |---|---|---|---|
-| `-h, --help` | bool | false | help for verify |
-| `--keyring` | string | "" | public-key file or PGP keyring used for verification (defaults to ~/.config/hull/keyring/) |
+| `--keyring` | string | — | public-key file or PGP keyring to verify against (required) |
 
-## Persistent flags inherited from `hull`
+## Worked example
 
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | bool | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
-
-## Examples
-
-Verify against the default hull keyring:
+Verify a downloaded archive against the signer's public key:
 
 ```sh
-hull package verify ./build/my-app-1.0.0.hull.tgz
+hull package verify ./my-app-1.0.0.hull.tgz --keyring ./cosign.pub
 ```
 
-Verify against a specific public-key file (bypasses the keyring):
+No output and exit status 0 mean the signature is valid. Chain it as an
+install gate — the install runs only if verification passes:
 
 ```sh
-hull package verify ./build/my-app-1.0.0.hull.tgz --keyring /path/to/signer.pub
+hull package verify ./my-app-1.0.0.hull.tgz --keyring ./cosign.pub && \
+  hull install my-app ./my-app-1.0.0.hull.tgz -n staging
 ```
 
-Use as a CI gate:
+If the archive was tampered with, verify fails and the install never runs:
 
-```sh
-hull package verify ./build/my-app-1.0.0.hull.tgz && \
-  hull install hello ./build/my-app-1.0.0.hull.tgz -n staging
+```
+Error: signature verification failed
 ```
 
 ## See also
 
+- [`package sign`](package-sign.md) — produce the signature
 - [`package`](package.md)
-- [`package sign`](package-sign.md)
-- [`keyring`](keyring.md)
-- [Signing guide](../guides/signing.md)
+- [`keyring`](keyring.md) — manage trusted public keys
+- [`pull`](pull.md) · [`install`](install.md) — verify inline with `--verify`

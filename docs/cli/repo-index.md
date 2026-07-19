@@ -1,20 +1,26 @@
 # hull repo index
 
-## Synopsis
-
-`hull repo index` generates an `index.yaml` for a directory of packaged `.hull.tgz` archives. The index is the catalogue consumers fetch at a repository's root URL — it lists every package version with its download URL, SHA-256 digest, and (optionally) provenance signature link. With `--merge`, an existing `index.yaml` is preserved and only new entries are added; without it, the index is regenerated from scratch.
+Build an `index.yaml` for a directory of packaged archives.
 
 ## When to use it
 
-Use during repository publication — every time you add a new packaged version to the directory, regenerate (or merge into) the index. With `--sign`, the resulting `index.yaml.prov` lets consumers verify the catalogue itself, not just individual package archives.
+- When you host your own HTTP repository and need the catalogue file that
+  clients fetch to discover charts.
+- After adding a newly packaged `.hull.tgz` to the directory, to refresh the
+  catalogue.
 
-## What happens when you run it
+## What happens
 
-1. Walks `<dir>` for `*.hull.tgz` archives.
-2. For each archive, extracts metadata (name, version) from the embedded `hull.yaml` and computes the SHA-256 digest.
-3. With `--merge`, reads the existing `index.yaml` and preserves entries; without it, starts fresh.
-4. With `--url`, generates per-version download URLs as `<url>/<archive>`.
-5. Writes `<dir>/index.yaml`. With `--sign <key>`, also writes `<dir>/index.yaml.prov`.
+Hull scans `<dir>` for `.hull.tgz` archives, reads each one's name and version,
+computes its digest, and writes an `index.yaml` into that directory listing
+every chart version. It prints the path it wrote. Serve the directory over HTTP
+and clients that [`hull repo add`](repo-add.md) its URL can then find those
+charts.
+
+Pass `--url` so each entry's download link is absolute. Use `--merge` to keep
+the existing `index.yaml` entries and add only new ones instead of regenerating
+from scratch. With `--sign`, hull also writes an `index.yaml.prov` signature
+next to the index and reports it.
 
 ## Usage
 
@@ -24,53 +30,32 @@ hull repo index <dir> [flags]
 
 ## Flags
 
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | bool | false | help for index |
-| `--merge` | bool | false | merge with existing `index.yaml` instead of regenerating |
-| `--sign` | string | "" | private key path to sign the index (produces `index.yaml.prov`) |
-| `--url` | string | "" | base URL for download URLs in the index |
+| Flag | Effect |
+|---|---|
+| `--url` | Prefix download URLs in the index with this base URL. |
+| `--merge` | Merge into the existing `index.yaml` instead of regenerating it. |
+| `--sign` | Sign the index with this private key, producing `index.yaml.prov`. |
 
-## Persistent flags inherited from `hull`
+## Worked example
 
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | bool | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
+```
+$ hull package ./my-app -d ./build
+Packaged: ./build/my-app-1.4.0.hull.tgz
 
-## Examples
-
-Generate a fresh index for a build directory:
-
-```sh
-hull repo index ./build --url https://charts.example.com
+$ hull repo index ./build --url https://charts.example.com
+Index generated at /home/you/build/index.yaml
 ```
 
-Merge a new package into the existing index without regenerating from scratch:
+Regenerate with a signature after adding a new version:
 
-```sh
-hull repo index ./build --url https://charts.example.com --merge
 ```
-
-Generate and sign the index:
-
-```sh
-hull repo index ./build --url https://charts.example.com --sign /path/to/repo-key.asc
-```
-
-End-to-end publication: package, index, then upload to S3:
-
-```sh
-hull package    ./my-app -d ./build
-hull repo index ./build --url https://charts.example.com --merge
-aws s3 sync     ./build s3://charts-bucket/
+$ hull repo index ./build --url https://charts.example.com --merge --sign ./repo-key.asc
+Index generated at /home/you/build/index.yaml
+Index signed: /home/you/build/index.yaml.prov
 ```
 
 ## See also
 
-- [`repo`](repo.md)
-- [`package`](package.md)
-- [`publish`](publish.md)
-- [Repositories guide](../guides/repositories.md)
+- [`package`](package.md) — build the `.hull.tgz` archives to index
+- [`publish`](publish.md) — push an archive to a registry
+- [`repo add`](repo-add.md) — register the served repository on a client

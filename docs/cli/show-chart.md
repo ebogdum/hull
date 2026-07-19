@@ -1,65 +1,51 @@
 # hull show chart
 
-## Synopsis
-
-`hull show chart` prints the contents of a package's `hull.yaml` to stdout — the package manifest containing name, version, apiVersion, declared layers, requires, environments, immutables, and metadata. Read-only; operates entirely on the package directory.
+`hull show chart` prints a package's `hull.yaml` metadata unchanged.
 
 ## When to use it
 
-Use to verify a package's identity, version, declared composition, or environment definitions before installing. Especially useful after pulling an unfamiliar package: a quick `show chart` tells you what you're about to deploy.
+- Verify a package's name, version, and apiVersion before installing.
+- Inspect an unfamiliar or freshly pulled package's manifest from the terminal.
 
-## What happens when you run it
+## What happens
 
-1. Reads `<package-path>/hull.yaml`.
-2. Prints it to stdout, unchanged.
-3. No layer resolution, no value merging, no cluster contact.
+1. Reads `hull.yaml` from `<package-path>` (a directory or a hull archive).
+2. Prints it verbatim to stdout. No layer resolution, no value merging.
 
 ## Usage
 
 ```
-hull show chart <package-path> [flags]
+hull show chart <package-path>
 ```
 
 ## Flags
 
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | bool | false | help for chart |
+Inherits the global flags.
 
-## Persistent flags inherited from `hull`
+## Worked example
 
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | bool | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
+**INPUT** — `test/fixtures/simple/hull.yaml` on disk:
 
-## Examples
-
-Show metadata for a local package:
-
-```sh
-hull show chart ./my-app
+```yaml
+apiVersion: hull/v1
+name: simple-app
+version: 1.0.0
 ```
 
-Inspect a pulled package directory:
+**OUTPUT** (`hull show chart test/fixtures/simple`) — the same manifest, so you
+read the package's identity directly:
 
-```sh
-hull pull my-app --repo https://charts.example.com --version 1.2.3 -d ./pulled --untar
-hull show chart ./pulled/my-app
+```yaml
+apiVersion: hull/v1
+name: simple-app
+version: 1.0.0
 ```
 
-Pipe through `yq` to extract one field:
-
-```sh
-hull show chart ./my-app | yq '.version'
-```
+Pipe it through `yq` to pull a single field, for example
+`hull show chart test/fixtures/simple | yq '.version'` prints `1.0.0`.
 
 ## See also
 
-- [`show`](show.md)
-- [`show all`](show-all.md)
-- [`show values`](show-values.md)
-- [`show readme`](show-readme.md)
-- [`hull.yaml` reference](../reference/hull-yaml.md)
+- [`show`](show.md) — the show command index
+- [`show values`](show-values.md) — the package's default values
+- [`show all`](show-all.md) — chart, values, and README together

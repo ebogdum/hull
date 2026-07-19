@@ -2,18 +2,25 @@
 
 ## Synopsis
 
-`hull plugin list` (alias `hull plugin ls`) prints every plugin currently installed on this machine: name, version, source (git URL or local path), and brief description. Plugins live under `~/.config/hull/plugins/`; this command reads that directory.
+`hull plugin list` (alias `hull plugin ls`) shows the plugins installed on this
+machine — name, version, and description, one row per plugin.
 
 ## When to use it
 
-Use to inventory the local plugin set, find a plugin's name for `hull plugin remove` / `update`, or verify an install succeeded.
+Use it to see what you have installed, to find the exact name to pass to
+[`update`](plugin-update.md) or [`remove`](plugin-remove.md), or to confirm an
+[`install`](plugin-install.md) took.
 
-## What happens when you run it
+## What happens
 
-1. Reads `~/.config/hull/plugins/` (or `${HULL_CONFIG_HOME}/plugins/`).
-2. Parses each subdirectory's `plugin.yaml`.
-3. Prints a tabular view to stdout.
-4. No cluster contact, no network.
+1. hull reads `~/.config/hull/plugins/` and looks at each subdirectory.
+2. For each one, it reads `plugin.yaml` to get the name, version, and
+   description.
+3. It prints those as a table. Directories without a readable `plugin.yaml` are
+   skipped.
+4. If nothing is installed, hull prints `No plugins installed.`
+
+No cluster and no network are involved.
 
 ## Usage
 
@@ -23,42 +30,34 @@ hull plugin list [flags]
 
 ## Flags
 
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | bool | false | help for list |
+Inherits the global flags.
 
-## Persistent flags inherited from `hull`
+## Worked example
 
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | bool | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
-
-## Examples
-
-List installed plugins:
+With two plugins installed:
 
 ```sh
 hull plugin list
 ```
 
-Use the short alias:
-
-```sh
-hull plugin ls
+```
+NAME    VERSION  DESCRIPTION
+backup  0.4.0    Snapshot and restore release state
+hello   1.2.0    Print a friendly greeting
 ```
 
-Find one specific plugin's source:
+With nothing installed:
 
 ```sh
-hull plugin list | grep backup
+hull plugin list
+```
+
+```
+No plugins installed.
 ```
 
 ## See also
 
-- [`plugin`](plugin.md)
 - [`plugin install`](plugin-install.md)
 - [`plugin update`](plugin-update.md)
 - [`plugin remove`](plugin-remove.md)

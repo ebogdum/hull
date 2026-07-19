@@ -1,66 +1,89 @@
 # hull dependency list
 
-## Synopsis
-
-`hull dependency list` prints a tabular view of every layer and required package declared in the package's `hull.yaml`, alongside the lock state recorded in `hull.lock`. For each entry the output includes the source URL, the constraint, the resolved version (from the lock), and a brief status flag indicating whether the layer is currently materialised in the local cache.
+`hull dependency list` shows every layer and required package your package
+declares, with its source type and whether it is pinned in `hull.lock`.
 
 ## When to use it
 
-Use to audit a package's composition before installing — confirm you're picking up the layer versions you expect, spot any layer whose lock entry is missing or out-of-date, and verify the cache is populated before going offline. Read-only; never mutates `hull.yaml` or `hull.lock`.
+- To confirm what a package composes with before you install or render it.
+- To check whether your dependencies are pinned (`locked`) or still floating
+  (`unlocked`) after editing `hull.yaml`.
 
-## What happens when you run it
+## What happens
 
-1. Reads `hull.yaml` from `<package-path>`.
-2. Reads `hull.lock` if present.
-3. Walks each `layers:` and `requires:` entry, joining declared metadata with locked metadata.
-4. Prints one row per entry to stdout. No cluster contact, no network access, no file writes.
+hull reads `hull.yaml` and prints a `LAYERS:` table and a `REQUIRES:` table.
+For each entry you see:
+
+- **NAME** — the layer or package name.
+- **TYPE** — `local`, `git`, or `registry`, derived from the `source`.
+- **SOURCE** — the declared source (truncated if long).
+- **STATUS** — `locked` if `hull.lock` pins this entry, otherwise `unlocked`.
+
+Nothing is downloaded or resolved; this is a read-only view of what you
+declared and what the lock file currently records. If a package declares no
+layers or requires, hull prints `No layers or requires declared.`
 
 ## Usage
 
 ```
-hull dependency list <package-path> [flags]
+hull dependency list <package-path>
 ```
 
 ## Flags
 
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | bool | false | help for list |
+Inherits the global flags.
 
-## Persistent flags inherited from `hull`
+## Worked example
 
-| Flag | Type | Description |
+**INPUT — `./web/hull.yaml`** declaring two layers and one required package,
+with no `hull.lock` yet:
+
+```yaml
+apiVersion: hull/v1
+name: web
+version: 0.3.0
+layers:
+  - name: base-layer
+    source: ../base-layer
+  - name: common
+    source: ../common-layer
+requires:
+  - name: redis
+    source: ../redis-req
+```
+
+**Command:**
+
+```sh
+hull dependency list ./web
+```
+
+**OUTPUT:**
+
+```
+LAYERS:
+  NAME                 TYPE         SOURCE                                   STATUS
+  base-layer           local        ../base-layer                            unlocked
+  common               local        ../common-layer                          unlocked
+
+REQUIRES:
+  NAME                 TYPE         SOURCE                                   STATUS
+  redis                local        ../redis-req                             unlocked
+```
+
+**Tracing each input to its output line:**
+
+| `hull.yaml` entry | Output row | Why |
 |---|---|---|
-| `--debug` | bool | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
+| `layers[0]` `base-layer`, `../base-layer` | `base-layer  local … unlocked` | a `layers:` entry → LAYERS table; a path → `local` type; no lock yet → `unlocked` |
+| `layers[1]` `common`, `../common-layer` | `common  local … unlocked` | second layer, same reasoning |
+| `requires[0]` `redis`, `../redis-req` | `redis  local … unlocked` | a `requires:` entry → REQUIRES table |
 
-## Examples
-
-List declared layers and their lock state:
-
-```sh
-hull dependency list ./my-app
-```
-
-Run from inside a package directory:
-
-```sh
-cd ./my-app && hull dependency list .
-```
-
-Combine with `dependency tree` to see the composition chain:
-
-```sh
-hull dependency list ./my-app
-hull dependency tree ./my-app
-```
+After you run [`update`](dependency-update.md), a `hull.lock` is written and the
+same command reports every `STATUS` as `locked`.
 
 ## See also
 
-- [`dependency`](dependency.md)
-- [`dependency tree`](dependency-tree.md) — visualise nested composition
-- [`dependency update`](dependency-update.md) — refresh the lock
-- [`dependency build`](dependency-build.md) — materialise the cache
-- [Layers guide](../guides/layers.md)
+- [`dependency update`](dependency-update.md) — pin these entries into `hull.lock`
+- [`dependency tree`](dependency-tree.md) — see nested layers, not just the top level
+- [`dependency build`](dependency-build.md) — download the resolved dependencies

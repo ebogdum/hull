@@ -2,18 +2,28 @@
 
 ## Synopsis
 
-`hull releases status` queries the cluster for the current state of every release declared in `hull-releases.yaml`. For each entry, it reports the current revision, status (deployed / pending / failed / missing), package version, and last-deployed time — the same information you'd get from `hull status <release>` for each, in one tabular view. Releases that are declared but not installed show as `not installed`.
+`hull releases status` reports where each release in your `hull-releases.yaml`
+currently stands — its latest revision and status — one line per release. It is
+the quick "is the whole set up, and at which revision?" check.
 
 ## When to use it
 
-Run as a CI gate after `hull releases install` / `upgrade` to confirm every declared release is at the expected status. Also useful for routine platform health checks: a single command tells you whether the platform graph is fully deployed and Ready.
+- After an `install` or `upgrade`, to confirm every release landed.
+- As a routine health check on the set, or a CI gate: a release that was never
+  installed shows plainly as not deployed.
 
-## What happens when you run it
+## What happens
 
-1. Reads `--file` (default `hull-releases.yaml`) from the current directory.
-2. For each entry, queries the cluster for the corresponding release record (in the entry's namespace).
-3. Composes a table with revision, status, package, namespace, and last-deployed timestamp.
-4. Prints to stdout. Exits 0 if all are deployed; non-zero if any are missing or failed.
+1. Reads the spec file (`--file`, default `hull-releases.yaml`) for the list of
+   release names.
+2. Looks up each release's latest recorded revision in the cluster (using
+   `-n/--namespace` and the global cluster flags).
+3. Prints one line per release, in the order they appear in the file:
+   `name: revision N status=...` for a recorded release, or `name: not
+   deployed` for one with no record.
+
+Releases are reported in file order, not dependency order. A reachable cluster
+is required, because the release records live there.
 
 ## Usage
 
@@ -23,44 +33,58 @@ hull releases status [flags]
 
 ## Flags
 
-| Flag | Type | Default | Description |
+| Flag | Type | Default | Effect |
 |---|---|---|---|
-| `--file` | string | hull-releases.yaml | spec file path |
-| `-h, --help` | bool | false | help for status |
+| `--file` | string | `hull-releases.yaml` | read the spec from this path instead of the default |
 
-## Persistent flags inherited from `hull`
+Inherits the global flags (`--kube-context`, `--kubeconfig`, `-n/--namespace`,
+`--debug`).
 
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | bool | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
+## Worked example
 
-## Examples
+**INPUT** — `hull-releases.yaml`. `postgres` and `redis` are installed; `api`
+was declared but never installed:
 
-Default — status of every release declared in `./hull-releases.yaml`:
+```yaml
+releases:
+  - name: postgres
+    package: ./charts/postgres
+    namespace: data
+
+  - name: redis
+    package: ./charts/redis
+    namespace: data
+
+  - name: api
+    package: ./charts/api
+    namespace: apps
+    dependsOn:
+      - postgres
+      - redis
+```
+
+**COMMAND:**
 
 ```sh
 hull releases status
 ```
 
-Status of a custom-named platform manifest:
+**OUTPUT:**
 
-```sh
-hull releases status --file ./platform.releases.yaml
+```
+postgres: revision 1 status=deployed
+redis: revision 1 status=deployed
+api: not deployed
 ```
 
-CI health check — fail if any release isn't deployed:
-
-```sh
-hull releases status || { echo "platform not fully up"; exit 1; }
-```
+Each installed release shows its latest revision and status; `api` has no
+record in the cluster, so it reports `not deployed` — a signal to run
+[`hull releases install`](releases-install.md) or
+[`upgrade`](releases-upgrade.md).
 
 ## See also
 
-- [`releases`](releases.md)
-- [`releases install`](releases-install.md)
-- [`releases upgrade`](releases-upgrade.md)
-- [`status`](status.md) — single-release status
-- [`hull-releases.yaml` reference](../reference/hull-releases-yaml.md)
+- [`releases`](releases.md) — the parent command and the spec-file format
+- [`install`](releases-install.md) — install any that are not deployed
+- [`upgrade`](releases-upgrade.md) — bring them all to current
+- [`list`](list.md) — list every release in the cluster

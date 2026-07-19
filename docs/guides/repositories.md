@@ -1,8 +1,12 @@
-# Repositories
+# Host and consume an HTTP repository
 
-A hull repository is a directory served over HTTPS containing one or more packaged `*.hull.tgz` archives plus an `index.yaml` describing them. Repositories are the simplest distribution mechanism — any HTTP(S) server can host one, including GitHub Pages, S3 with a static index, or an internal nginx.
+A hull repository is a directory served over HTTP(S) containing packaged
+`*.hull.tgz` archives plus an `index.yaml` that catalogues them. It is the
+simplest distribution mechanism — any static HTTP server hosts one, including
+GitHub Pages, S3 with a static index, or an internal nginx.
 
-For OCI-based distribution, see [OCI](oci.md). The two are complementary; a single project often publishes both.
+For OCI-registry distribution, see [OCI](oci.md). The two are complementary; a
+project often publishes both.
 
 ## The shape of a repo
 
@@ -12,169 +16,229 @@ https://charts.example.com/
 ├── my-app-1.0.0.hull.tgz
 ├── my-app-1.1.0.hull.tgz
 ├── my-app-1.2.0.hull.tgz
-├── my-app-1.0.0.hull.tgz.prov         # optional PGP detached signature
-└── ...
+└── my-app-1.2.0.hull.tgz.prov      # optional detached PGP signature
 ```
 
-`index.yaml` is the catalogue: it lists every package, its versions, the URL of each archive, and (optionally) a digest and signature reference per version.
+`index.yaml` lists every package, its versions, each archive's URL, and each
+archive's SHA-256 digest.
 
-## Producing a repo
+## Produce a repo
 
 ### Package each release
 
 ```sh
 hull package ./my-app -d ./build
-# writes ./build/my-app-1.2.3.hull.tgz
 ```
 
-`hull package` reads the package's `hull.yaml`, resolves layers, and produces a self-contained archive. By default it computes a SHA-256 digest and writes it to a sibling `.sha256` file.
+```
+Successfully packaged to: ./build/my-app-1.2.3.hull.tgz
+```
 
-To sign at package time:
+`hull package` reads the package's `hull.yaml`, resolves layers, and writes a
+single self-contained `<name>-<version>.hull.tgz`. To sign at package time, add
+`--sign` with a signer:
 
 ```sh
-hull package ./my-app -d ./build --sign --key author@example.com --keyring ~/.gnupg/secring.gpg
+hull package ./my-app -d ./build --sign --key author@example.com \
+  --keyring ~/.gnupg/secring.gpg
 ```
 
-This produces:
+```
+Successfully packaged to: ./build/my-app-1.2.3.hull.tgz
+Signed: ./build/my-app-1.2.3.hull.tgz.prov
+```
 
-- `my-app-1.2.3.hull.tgz`
-- `my-app-1.2.3.hull.tgz.prov` — detached PGP signature
-- `my-app-1.2.3.hull.tgz.sha256` — SHA-256 digest
+This writes the archive plus a detached `.prov` signature. See
+[Signing](signing.md) for the full story.
 
-### Generate or update an index
+### Generate the index
 
 ```sh
 hull repo index ./build --url https://charts.example.com
 ```
 
-Writes (or updates) `./build/index.yaml`. The `--url` flag is the base URL where archives will be served; hull writes per-version absolute URLs into the index.
-
-For an incremental update (a new version was added without re-packaging existing ones):
-
-```sh
-hull repo index ./build --url https://charts.example.com --merge
+```
+Index generated at /home/you/build/index.yaml
 ```
 
-`--merge` preserves existing entries and only adds the new ones; without it, the index is regenerated from scratch.
+`--url` is the base URL where the archives will be served; hull writes
+per-version absolute download URLs into the index and records each archive's
+SHA-256. To add a new version without regenerating from scratch, use `--merge`;
+to sign the index, add `--sign <private-key>` (writes `index.yaml.prov`):
+
+```sh
+hull repo index ./build --url https://charts.example.com --merge --sign ./repo-key.asc
+```
 
 ### Publish
 
-The `./build/` directory is the entire repository. Drop it on any HTTP server:
+The `./build/` directory is the entire repository — serve it from any static
+HTTP host:
 
-- **GitHub Pages**: commit to a branch, enable Pages, point to `https://<user>.github.io/<repo>/`.
-- **S3**: `aws s3 sync ./build s3://my-bucket/`, set `index.yaml`'s Content-Type to `application/yaml`.
-- **nginx**: serve the directory; enable `autoindex` if you want a browsable view.
+- **GitHub Pages** — commit `build/`, enable Pages, serve at
+  `https://<user>.github.io/<repo>/`.
+- **S3** — `aws s3 sync ./build s3://my-bucket/`, set `index.yaml`'s
+  Content-Type to `application/yaml`.
+- **nginx** — serve the directory; enable `autoindex` for a browsable view.
 
-There is no special server — the repo is dumb static.
+There is no special server; the repo is dumb static files.
 
-## Consuming a repo
+## Consume a repo
 
-Register the repo, refresh the index, then pull packages by name:
+Register the repo, refresh its index, then find and pull packages by name:
 
 ```sh
 hull repo add my-charts https://charts.example.com
-hull repo update                                       # refresh local cached indexes
-hull repo list                                         # see what's added
-hull search repo my-app                                # across all added repos
 ```
 
-Pull a package from a registered repo by name, with `--repo` pointing at the registered URL:
+```
+"my-charts" has been added to your repositories
+```
 
 ```sh
-hull pull my-app --repo https://charts.example.com --version "^1.2.0" -d ./pulled --untar
+hull repo update
 ```
 
-Then install from the unpacked directory:
+```
+...successfully got an update from "my-charts"
+Update complete.
+```
+
+```sh
+hull repo list
+```
+
+```
+NAME                 URL
+my-charts            https://charts.example.com
+```
+
+```sh
+hull search repo my-app
+```
+
+`hull repo add` records the name and URL in
+`~/.config/hull/repositories.yaml`; it does **not** fetch the index — that is
+what `hull repo update` does, caching each repo's `index.yaml` under
+`~/.cache/hull/indexes/` (30-minute TTL). Adding a name that already exists is
+left untouched unless you pass `--force-update`.
+
+### Pull a package
+
+`hull pull` fetches a named chart from a repo (`--repo`), with SemVer version
+selection, and can unpack it. Note the flag is `--destination` — `hull pull`
+has no `-d` shorthand:
+
+```sh
+hull pull my-app --repo https://charts.example.com --version "^1.2.0" \
+  --destination ./pulled --untar
+```
+
+```
+Pulled and extracted: ./pulled/my-app
+```
+
+Then install from the unpacked **directory** (`hull install` takes a package
+directory, not an archive or a URL):
 
 ```sh
 hull install my-app ./pulled/my-app -n default --create-namespace
 ```
 
-`hull repo add` writes the repository name+URL to `~/.config/hull/repositories.yaml` (or `${HULL_CONFIG_HOME}/repositories.yaml`). `hull repo update` fetches each repo's `index.yaml` into the index cache (`~/.cache/hull/indexes/`).
+## Authenticate to a private repo
 
-## Authentication
-
-For private repos, supply credentials at `repo add` time:
+Supply credentials when you add the repo:
 
 ```sh
 hull repo add private https://charts.example.com --username u --password p
 ```
 
-For token-based authentication (e.g. GitHub Pages with a fine-grained token), pass the token as the password — many providers accept a token in place of an HTTP basic password:
+For token-based auth (for example GitHub Pages behind a fine-grained token),
+pass the token as the password — most providers accept it in place of a basic
+password:
 
 ```sh
-hull repo add private https://charts.example.com --username "$GITHUB_USER" --password "$GITHUB_TOKEN"
+hull repo add private https://charts.example.com \
+  --username "$GITHUB_USER" --password "$GITHUB_TOKEN"
 ```
 
-Credentials are stored in `~/.config/hull/credentials.json` keyed by URL. Subsequent operations use them automatically. To refresh credentials without re-adding the repo, run `hull login`:
+Credentials are stored in `~/.config/hull/credentials.json`, keyed by host, and
+reused automatically. To refresh a host's credential without re-adding the
+repo, use `hull login` — it is non-interactive and needs a credential flag
+(`-u/--username` with `-p/--password`, or `--token`, or `--api-key`):
 
 ```sh
-hull login charts.example.com
+echo "$GITHUB_TOKEN" | hull login charts.example.com -u "$GITHUB_USER" --password-stdin
 ```
 
-The interactive flow asks for username and password; non-interactive use takes `--username`/`--password` flags.
-
-To remove credentials:
-
-```sh
-hull logout charts.example.com
+```
+Login succeeded for charts.example.com
 ```
 
-`hull logout` does not unregister the repo — only the credentials. To unregister the repo, `hull repo remove private`.
+`hull logout charts.example.com` removes only the stored credential, not the
+repo registration. To unregister the repo itself, `hull repo remove private`.
 
-## TLS
+## TLS options
 
-`hull repo add` honours these flags:
+`hull repo add`, `hull repo update`, and `hull pull` honour:
 
-- `--ca-file <path>` — additional CA bundle for self-signed registries.
-- `--cert-file <path>` / `--key-file <path>` — client certificate for mTLS-protected repos.
-- `--insecure-skip-tls-verify` — disable server cert validation (do not use in production).
+- `--ca-file <path>` — trust an extra CA bundle for a self-signed server.
+- `--cert-file <path>` / `--key-file <path>` — client certificate for mTLS.
+- `--insecure-skip-tls-verify` — skip server-cert validation (`hull repo add`
+  only; do not use in production).
 
-Same flags are accepted on `hull pull` and `hull install` when targeting an HTTPS source directly.
+## Inspect a package
 
-## Repository conventions
-
-- **`index.yaml` versioning**: hull recognises `apiVersion: hull/v1` (current). Indexes generated by other tools using the legacy `apiVersion: v1` chart-repo schema are also accepted as a compatibility layer.
-- **Per-version digest**: every entry in `index.yaml` includes the SHA-256 of its archive. `hull pull` verifies the digest before unpacking.
-- **`provenance` field**: when an entry has a `prov:` URL, `hull pull --verify` fetches the `.prov` file and checks its PGP signature against the local keyring. See [Signing](signing.md).
-- **Mirror chains**: a repo can be a mirror of another by republishing its `index.yaml` with rewritten URLs. Hull doesn't care.
-
-## Inspecting a package
-
-`hull show` operates on a *package directory* — typically a pulled+untar'd one:
+`hull show` operates on an unpacked package **directory**:
 
 ```sh
-hull pull my-app --repo https://charts.example.com --version 1.2.3 -d ./pulled --untar
-hull show chart   ./pulled/my-app                    # hull.yaml metadata
-hull show values  ./pulled/my-app                    # default values.yaml
-hull show readme  ./pulled/my-app                    # README.md
-hull show crds    ./pulled/my-app                    # CRDs declared by the package
-hull show all     ./pulled/my-app                    # everything in one document
+hull pull my-app --repo https://charts.example.com --version 1.2.3 \
+  --destination ./pulled --untar
+hull show chart   ./pulled/my-app     # hull.yaml metadata
+hull show values  ./pulled/my-app     # default values.yaml
+hull show readme  ./pulled/my-app     # README.md
+hull show crds    ./pulled/my-app     # declared CRDs
+hull show all     ./pulled/my-app     # everything in one document
 ```
 
-To browse upstream catalogues without adding a repo:
+To browse Artifact Hub without registering a repo:
 
 ```sh
-hull search hub my-app                                # query Artifact Hub
+hull search hub my-app
 hull search hub my-app --endpoint https://artifacthub.io
 ```
 
-`hull search hub` queries the public Artifact Hub API directly and does not require `hull repo add`.
+`hull search hub` queries the public Artifact Hub API directly.
 
-## Pulling without installing
+## Verify provenance on pull
+
+When an archive ships a `.prov` sidecar, verify the signature as you pull:
 
 ```sh
-hull pull my-charts/my-app --version 1.2.3 -d ./pulled
-hull pull my-charts/my-app --version 1.2.3 -d ./pulled --untar
-hull pull my-charts/my-app --version 1.2.3 -d ./pulled --untar --prov  # also fetch .prov
-hull pull my-charts/my-app --version 1.2.3 -d ./pulled --verify       # fetch + verify .prov
+hull pull my-app --repo https://charts.example.com --version 1.2.3 \
+  --prov --verify --destination ./pulled
 ```
 
-Useful for vendoring a copy of an upstream package into your repo, for inspection, or for offline-airgap install workflows.
+`--verify` fetches the `.prov` and checks it against your local keyring before
+the archive is kept; a bad signature aborts the pull. See [Signing](signing.md).
 
 ## Troubleshooting
 
-- **`failed to fetch index.yaml: TLS handshake error`** — the server's cert isn't trusted. Use `--ca-file` for self-signed setups.
-- **`digest mismatch: expected sha256:abc..., got sha256:def...`** — the archive on the server doesn't match the index's recorded digest. Common cause: someone re-published an archive without regenerating the index.
-- **`401 Unauthorized`** — credentials weren't sent or are wrong. `hull login <host>` to refresh them; check `~/.config/hull/credentials.json`.
-- **`index.yaml not found`** — the URL points at a directory but the server doesn't serve `index.yaml` at the URL root. Check the actual URL by running `curl <url>/index.yaml`.
+- **`digest mismatch`** — the archive on the server does not match the digest
+  recorded in `index.yaml`. Common cause: an archive was re-published without
+  regenerating the index (`hull repo index ./build --url ...`).
+- **`401 Unauthorized`** — no credential was sent, or it is wrong. Re-run
+  `hull login <host>`; check `~/.config/hull/credentials.json`.
+- **index not found** — the URL does not serve `index.yaml` at its root. Verify
+  with `curl <url>/index.yaml`.
+- **TLS handshake error** — the server certificate is not trusted; pass
+  `--ca-file` for a self-signed setup.
+
+## See also
+
+- [`hull repo add`](../cli/repo-add.md) · [`hull repo index`](../cli/repo-index.md)
+  · [`hull repo update`](../cli/repo-update.md)
+- [`hull pull`](../cli/pull.md) — download a package from a repo or OCI
+- [`hull package`](../cli/package.md) — build the archives you host
+- [OCI](oci.md) — registry-based distribution
+- [Signing](signing.md) — sign and verify packages

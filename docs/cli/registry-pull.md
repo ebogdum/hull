@@ -1,73 +1,86 @@
 # hull registry pull
 
-## Synopsis
-
-`hull registry pull` downloads a hull package from an OCI distribution-spec registry and writes it as a `.hull.tgz` archive on disk. The OCI reference includes the tag (`oci://host/name:tag`); there is no separate `--version` flag — the tag in the URI is the version selector. For HTTP-repository pulls or for SemVer-constraint resolution, use `hull pull` instead.
+Download a hull package from an OCI reference, optionally verifying its cosign
+signature first.
 
 ## When to use it
 
-Use when scripting OCI-specific workflows or when working against a registry that requires `--plain-http` / `--insecure-skip-tls-verify` (which hull's unified `pull` does not expose). For everyday pulls, the more general `hull pull` is preferable.
+- To fetch a package that was pushed with [`hull registry push`](registry-push.md).
+- To require a valid cosign signature before the artifact ever touches disk —
+  supply `--cosign-key` or the keyless `--cosign-identity` + `--cosign-issuer`.
+- When you need the OCI-only transport flags (`--plain-http`,
+  `--insecure-skip-tls-verify`) that the general [`hull pull`](pull.md) does not
+  expose.
 
-## What happens when you run it
+## What happens
 
-1. Resolves the OCI reference (`oci://host/path:tag`) using stored credentials.
-2. Pulls the artifact's manifest and blob.
-3. Writes the blob to `<destination>/<name>-<tag>.hull.tgz`.
-4. Verifies the blob's digest against the manifest before considering the pull complete.
+1. If any cosign flag is set, hull verifies the signature on `<ref>` first.
+   Verification is fail-closed: an unsigned or wrongly-signed artifact is not
+   pulled, and `cosign signature verified for <ref>` prints only on success.
+2. Uses the credentials you stored with [`hull login`](login.md) for the host
+   in `<ref>`.
+3. Downloads the artifact and writes it as a `.hull.tgz` archive into
+   `--destination` (default the current directory).
+4. Prints `Pulled <ref> to <path>` naming the file that landed on disk.
 
 ## Usage
 
 ```
-hull registry pull <ref> [flags]
+hull registry pull <ref>
 ```
+
+`<ref>` is an `oci://…` reference including the `:tag` that selects the
+version.
 
 ## Flags
 
 | Flag | Type | Default | Description |
 |---|---|---|---|
-| `-d, --destination` | string | . | directory to save the pulled package |
-| `-h, --help` | bool | false | help for pull |
-| `--insecure-skip-tls-verify` | bool | false | skip TLS certificate verification |
-| `--plain-http` | bool | false | use plaintext HTTP (no TLS) |
+| `-d, --destination` | string | `.` | Directory the downloaded `.hull.tgz` is written to. |
+| `--cosign-key` | string | "" | Verify the artifact's cosign signature with this public key before pulling (key-based). |
+| `--cosign-identity` | string | "" | Keyless cosign: require this certificate identity. Use with `--cosign-issuer`. |
+| `--cosign-issuer` | string | "" | Keyless cosign: require this certificate OIDC issuer. Use with `--cosign-identity`. |
+| `--plain-http` | bool | false | Talk to the registry over plaintext HTTP instead of HTTPS. |
+| `--insecure-skip-tls-verify` | bool | false | Keep HTTPS but skip certificate validation. |
 
-## Persistent flags inherited from `hull`
+Global flags `--oci-plain-http`, `--oci-insecure-skip-tls-verify`, and
+`--allow-plaintext-auth` are inherited from `hull`.
 
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | bool | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
+## Worked example
 
-## Examples
+You want the signed 1.0.0 package, and you refuse to accept it unless the
+signature checks out.
 
-Pull a tagged version into the current directory:
+**INPUT** — keyless verification, saving into `./pulled`:
 
 ```sh
-hull registry pull oci://ghcr.io/example/charts/my-app:1.2.3
+hull registry pull oci://ghcr.io/example/charts/my-app:1.0.0 \
+  --cosign-identity 'https://github.com/example/ci/.github/workflows/release.yml@refs/heads/main' \
+  --cosign-issuer   'https://token.actions.githubusercontent.com' \
+  -d ./pulled
 ```
 
-Pull the `latest` tag into a specific directory:
+**OUTPUT:**
 
-```sh
-hull registry pull oci://ghcr.io/example/charts/my-app:latest -d ./pulled
+```
+cosign signature verified for oci://ghcr.io/example/charts/my-app:1.0.0
+Pulled oci://ghcr.io/example/charts/my-app:1.0.0 to ./pulled/my-app-1.0.0.hull.tgz
 ```
 
-Pull from an internal registry over plain HTTP (development only):
+**RESULT:** `./pulled/my-app-1.0.0.hull.tgz` is on disk, and it is guaranteed
+signed by the expected identity. Without the cosign flags the pull runs the
+same way, minus the first line:
 
 ```sh
-hull registry pull oci://localhost:5000/charts/my-app:1.2.3 --plain-http
+hull registry pull oci://ghcr.io/example/charts/my-app:1.0.0 -d ./pulled
 ```
-
-Pull from a registry with a self-signed TLS certificate (skip cert validation):
-
-```sh
-hull registry pull oci://registry.local/charts/my-app:1.2.3 --insecure-skip-tls-verify
+```
+Pulled oci://ghcr.io/example/charts/my-app:1.0.0 to ./pulled/my-app-1.0.0.hull.tgz
 ```
 
 ## See also
 
-- [`registry`](registry.md)
-- [`registry push`](registry-push.md)
-- [`pull`](pull.md) — unified pull with SemVer-constraint resolution
-- [OCI guide](../guides/oci.md)
+- [`login`](login.md) — store the credentials this command uses
+- [`registry push`](registry-push.md) — upload a package
+- [`pull`](pull.md) — general pull (OCI or HTTP repo) with version resolution
+- [`install`](install.md) — install a package from a reference

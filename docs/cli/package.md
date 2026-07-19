@@ -1,21 +1,27 @@
 # hull package
 
-## Synopsis
-
-`hull package` creates a `.hull.tgz` archive from a package directory. The archive is self-contained: every layer is materialised, `hull.lock` is included, and (with `--sign`) a detached PGP `.prov` file is produced alongside.
+Package a hull package directory into a versioned `.hull.tgz` archive.
 
 ## When to use it
 
-Use as the final step before publication. The output archive can be uploaded to an HTTP repository (`hull publish --repo`), pushed to OCI (`hull registry push` / `hull publish --oci`), or distributed by hand.
+- To turn a working package directory into a single distributable file before
+  you [`publish`](publish.md) it or hand it off.
+- To sign at build time (`--sign`), or to produce byte-identical output for
+  reproducible builds (`--reproducible`).
 
-## What happens when you run it
+## What happens
 
-1. Reads `<path>` and resolves every layer (uses cached materials from `hull dependency build` if present).
-2. Validates `hull.yaml` and `values.yaml`.
-3. Composes a tarball containing the package directory, layer cache, and `hull.lock`.
-4. Names the output `<destination>/<name>-<version>.hull.tgz`.
-5. With `--sign --key <path>`, also emits a `.prov` file (detached PGP signature) next to the archive.
-6. With `--reproducible`, writes the archive deterministically (zero timestamps, canonical modes) for reproducible builds.
+1. hull reads `<path>`, validates the package, and writes an archive named
+   `<name>-<version>.hull.tgz` into the `--destination` directory (default the
+   current directory).
+2. It prints `Successfully packaged to: <archive-path>`.
+3. With `--sign`, it then signs the archive with the key from `--key` (or
+   `--keyring`), writing a detached `<archive>.prov` provenance file, and
+   prints `Signed: <prov-path>`. If the key is passphrase-protected, supply
+   `--passphrase-file`.
+4. `--version` / `--app-version` override the values recorded from `hull.yaml`;
+   `--reproducible` zeroes timestamps and canonicalises file modes so the same
+   inputs always yield the same bytes.
 
 ## Usage
 
@@ -26,67 +32,43 @@ hull package [command]
 
 ## Subcommands
 
-- [`hull package sign`](package-sign.md) — sign an existing archive with a PGP private key
-- [`hull package verify`](package-verify.md) — verify a `.prov` signature against the local keyring
+| Command | What it does |
+|---|---|
+| [`package sign`](package-sign.md) | sign an existing archive with a PGP private key |
+| [`package verify`](package-verify.md) | verify an archive's `.prov` signature against a key |
 
 ## Flags
 
 | Flag | Type | Default | Description |
 |---|---|---|---|
-| `--app-version` | string | — | override the appVersion in hull.yaml |
 | `-d, --destination` | string | "." | directory to write the archive to |
-| `-h, --help` | — | — | help for package |
-| `--key` | string | — | PGP private key file or signer name (used with --sign) |
-| `--keyring` | string | — | PGP keyring file containing the signer (alternative to --key) |
-| `--passphrase-file` | string | — | file containing the key's passphrase (- for stdin) |
+| `--version` | string | — | override the version recorded from hull.yaml |
+| `--app-version` | string | — | override the appVersion recorded from hull.yaml |
 | `--reproducible` | — | — | produce byte-identical output across machines (zero timestamps, canonical modes) |
-| `--sign` | — | — | produce a .prov provenance file alongside the archive (requires --key or --keyring) |
-| `--version` | string | — | override the version in hull.yaml |
+| `--sign` | — | — | also produce a `.prov` provenance file (requires `--key` or `--keyring`) |
+| `--key` | string | — | PGP private key file or signer name, used with `--sign` |
+| `--keyring` | string | — | PGP keyring file containing the signer (alternative to `--key`) |
+| `--passphrase-file` | string | — | file holding the key's passphrase (`-` for stdin) |
 
-## Persistent flags inherited from `hull`
+## Worked example
 
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | — | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
-
-## Examples
-
-Package a directory:
+Package a directory and sign it in one step:
 
 ```sh
-hull package ./my-app -d ./build
+hull package ./my-app -d ./build --sign --key ./cosign.key
 ```
 
-Package and sign in one shot:
-
-```sh
-hull package ./my-app -d ./build --sign --key /path/to/secret-key.asc
+```
+Successfully packaged to: ./build/my-app-1.0.0.hull.tgz
+Signed: ./build/my-app-1.0.0.hull.tgz.prov
 ```
 
-Reproducible build (deterministic output across machines):
-
-```sh
-hull package ./my-app -d ./build --reproducible
-```
-
-Override the version captured in the archive (e.g. for a CI release-candidate tag):
-
-```sh
-hull package ./my-app -d ./build --version 1.2.3-rc.4 --app-version 1.5.0
-```
-
-Verify a previously-signed archive:
-
-```sh
-hull package verify ./build/my-app-1.0.0.hull.tgz
-```
+Now the archive and its provenance file are ready to
+[`publish`](publish.md).
 
 ## See also
 
-- [`publish`](publish.md)
-- [`registry push`](registry-push.md)
-- [Repositories guide](../guides/repositories.md)
-- [Signing guide](../guides/signing.md)
+- [`package sign`](package-sign.md) — sign an already-built archive
+- [`package verify`](package-verify.md) — check a signature
+- [`publish`](publish.md) — upload the archive
+- [`pull`](pull.md) · [`install`](install.md)

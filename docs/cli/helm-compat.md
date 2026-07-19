@@ -2,52 +2,27 @@
 
 ## Synopsis
 
-`hull helm-compat` provides Helm chart compatibility helpers. Subcommands export a hull package as a Helm-compatible artifact (suitable for tooling that expects a Helm chart layout) and report on the compatibility of an existing Helm chart for use with hull.
+`hull helm-compat` bridges hull and Helm in both directions. It renders and
+installs unmodified upstream Helm charts under a hull release record, exports a
+hull package into Helm's chart layout so Helm-only tooling can read it, and
+reports how much of a Helm chart hull would have to translate to adopt it.
 
-## When to use it
+## Subcommands
 
-Use when the surrounding ecosystem expects Helm artifacts (e.g. CI scanners, registries, GitOps tools that only know Helm). The export is best-effort: hull's `${...}` expressions may end up as inert literal strings in the exported chart, which is fine for static analysis but not for actual Helm install.
+| Command | What it does |
+|---|---|
+| [`export`](helm-compat-export.md) | write a hull package out as a Helm v3 chart |
+| [`report`](helm-compat-report.md) | analyse a Helm chart and report its Go-template usage |
+| `render` | render an unmodified Helm chart to manifests (like `helm template`) |
+| `install` | render an unmodified Helm chart and apply it under a hull release |
 
 ## Usage
 
 ```
-hull helm-compat [command]
-```
-
-## Subcommands
-
-- [`hull helm-compat report`](helm-compat-report.md) — Analyse a Helm chart and report which constructs hull supports natively
-
-## Flags
-
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | — | — | help for helm-compat |
-
-## Persistent flags inherited from `hull`
-
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | — | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
-
-## Examples
-
-Export a hull package as a Helm chart skeleton:
-
-```sh
-hull helm-compat export ./my-app -d ./helm-export
-```
-
-Report on Helm-chart compatibility:
-
-```sh
-hull helm-compat report ./upstream-chart
+hull helm-compat <command> <path>
 ```
 
 ## See also
 
-- [`migrate`](migrate.md)
-- [Migration guide](../guides/migration.md)
+- [`migrate`](migrate.md) — convert a Helm chart into a native hull package
+- [`template`](template.md) — render a hull package to manifests

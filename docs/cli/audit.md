@@ -1,12 +1,27 @@
 # hull audit
 
-## Synopsis
-
-`hull audit` prints the chronological audit trail for a release: every install, upgrade, rollback, or uninstall action with its timestamp, the user/host that initiated it, the kubeconfig context, the hull binary version, the CLI flags as passed, and any value files supplied. The audit log is signed metadata embedded in the release record.
+`hull audit` prints the chronological change log for one release — every
+revision, who made it, what action it was, and when.
 
 ## When to use it
 
-Use after an incident to answer "who applied what, when, with what flags?". Useful for compliance, post-mortems, and operator handoffs.
+- To answer "who changed this release, and when?" for a SOC 2 / SLSA review,
+  an incident, or a change-management sign-off.
+- Before a rollback, to see which revision you want to return to.
+- To feed the trail into another tool with `--output json` or `--output yaml`.
+
+## What happens
+
+1. You name a release. hull reads its full revision history from the cluster.
+2. Each revision prints as a row: revision number, action
+   (install / upgrade / rollback), the user who ran it, its status, and the
+   timestamp.
+3. With `--revision N`, only that one revision is shown; the rest are dropped.
+4. With `--output json` or `yaml`, the same records are emitted as structured
+   data — including the recorded flags, value files, kubeconfig context, and
+   hostname — instead of the table.
+5. If the release has no history, hull prints `no history for <name>` and
+   exits cleanly.
 
 ## Usage
 
@@ -18,11 +33,10 @@ hull audit <release-name> [flags]
 
 | Flag | Type | Default | Description |
 |---|---|---|---|
-| `-h, --help` | — | — | help for audit |
-| `-o, --output` | string | "table" | output format: table, json, yaml |
-| `--revision` | int | — | show only the named revision (0 = all) |
+| `-o, --output` | string | `table` | pick the rendering: `table` (summary rows), `json`, or `yaml` (full provenance) |
+| `--revision` | int | `0` | show only this revision; `0` shows every revision |
 
-## Persistent flags inherited from `hull`
+### Persistent flags inherited from `hull`
 
 | Flag | Type | Description |
 |---|---|---|
@@ -31,21 +45,56 @@ hull audit <release-name> [flags]
 | `--kubeconfig` | string | path to kubeconfig file |
 | `-n, --namespace` | string | Kubernetes namespace |
 
-## Examples
+## Worked example
 
-Full audit trail:
+Show the full trail for the `web-api` release:
 
 ```sh
-hull audit my-app -n prod
+hull audit web-api -n prod
 ```
 
-Single revision as JSON:
+Output:
+
+```
+REVISION   ACTION     USER          STATUS       TIMESTAMP
+1          install    alice@corp    superseded   2026-07-10 09:14:02
+2          upgrade    bob@corp      superseded   2026-07-12 16:40:55
+3          rollback   alice@corp    deployed     2026-07-15 11:22:07
+```
+
+Read one revision as JSON, with the flags and value files that produced it:
 
 ```sh
-hull audit my-app --revision 3 -n prod -o json
+hull audit web-api --revision 2 -n prod --output json
+```
+
+Output:
+
+```json
+[
+  {
+    "revision": 2,
+    "action": "upgrade",
+    "user": "bob@corp",
+    "hostname": "ci-runner-7",
+    "context": "prod",
+    "flags": ["--set", "replicas=3"],
+    "valueFiles": ["prod.yaml"],
+    "parentRev": 1,
+    "status": "superseded",
+    "timestamp": "2026-07-12T16:40:55Z"
+  }
+]
+```
+
+A release that was never deployed prints:
+
+```
+no history for web-api
 ```
 
 ## See also
 
-- [`history`](history.md)
-- [`get`](get.md)
+- [`history`](history.md) — shorter revision list for a release
+- [`get`](get.md) — inspect the values, manifest, and notes of a revision
+- [`rollback`](rollback.md) — return a release to an earlier revision

@@ -1,22 +1,30 @@
 # hull create
 
-## Synopsis
-
-`hull create` scaffolds a new package in the named directory. The output is a small but complete hull package — `hull.yaml`, `values.yaml`, a `templates/` directory with a working Deployment + Service + ConfigMap, an `_helpers.yaml` partial for shared label snippets, and a `README.md`. The result is immediately renderable with `hull template` and immediately installable with `hull install`.
+`hull create` scaffolds a ready-to-edit hull package — a working
+Deployment + Service with values already wired in — in a new directory.
 
 ## When to use it
 
-Use when starting a new package from scratch. For richer starting points — an operator-pattern package with CRD scaffolding, a batch-job pattern, or a stateful service template — use `hull init <template>` instead. For migrating an existing Helm chart, use `hull migrate`.
+- You want a working starter you can render and edit immediately, not a
+  menu of layouts.
+- You want the batteries-included set: a helpers partial, notes, and a
+  `.hullignore` already in place.
+- For a choice of workload shapes (webapp, batch, operator, blank) use
+  [`hull init`](init.md) instead.
 
-## What happens when you run it
+## What happens
 
-1. Creates the directory `<name>` (errors if it already exists).
-2. Writes `<name>/hull.yaml` with `apiVersion: hull/v1`, `name: <name>`, `version: 0.1.0`, and a brief description.
-3. Writes `<name>/values.yaml` with conventional defaults (replicas, image, service, resources).
-4. Writes `<name>/templates/deployment.yaml`, `service.yaml`, `configmap.yaml`, and `_helpers.yaml`.
-5. Writes `<name>/README.md` with a one-line description and install instructions.
+1. Creates a directory named after `<name>` (fails if it already exists).
+2. Writes `hull.yaml` (`name`, `version`, `description`) and a `values.yaml`
+   seeded with `replicaCount`, `image`, and `service.port`.
+3. Writes a `templates/` directory: `deployment.yaml`, `service.yaml`, a
+   `_helpers.yaml` partial, and `notes.yaml`.
+4. Writes a `.hullignore` listing patterns to skip when packaging.
+5. Prints `created package <name>/`.
 
-The scaffolded package is intentionally minimal — open the files and customise rather than treating them as fixed.
+The templates read the seeded values via `${values.*}`, so the package
+renders and lints as-is. Edit the files, then run [`hull lint`](lint.md) and
+[`hull template`](template.md).
 
 ## Usage
 
@@ -26,47 +34,51 @@ hull create <name> [flags]
 
 ## Flags
 
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | bool | false | help for create |
+Inherits the global flags.
 
-## Persistent flags inherited from `hull`
+## Worked example
 
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | bool | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
-
-## Examples
-
-Scaffold a new package and enter the directory:
+Scaffold a package called `myapp`:
 
 ```sh
-hull create my-app
-cd my-app
-ls
-# README.md  hull.yaml  templates/  values.yaml
+hull create myapp
 ```
 
-Render the scaffolded package straight away to confirm it's well-formed:
+**OUTPUT:**
+
+```
+created package myapp/
+```
+
+**What you now have on disk:**
+
+```
+myapp/
+├── .hullignore
+├── hull.yaml
+├── values.yaml
+└── templates/
+    ├── _helpers.yaml
+    ├── deployment.yaml
+    ├── notes.yaml
+    └── service.yaml
+```
+
+`values.yaml` sets `replicaCount: 1`, `image.repository: nginx`, and
+`service.port: 80`, and the templates reference those values, so the package
+renders straight away:
 
 ```sh
-hull create my-app
-hull template ./my-app
+cd myapp
+hull template .
 ```
 
-Install the scaffolded package into a `kind` cluster as a smoke test:
-
-```sh
-hull create my-app
-hull install my-app ./my-app -n my-app --create-namespace
-```
+Change `replicaCount` or the image in `values.yaml` and re-render to watch
+the manifest update.
 
 ## See also
 
-- [`init`](init.md) — scaffold from a richer named template
-- [`migrate`](migrate.md) — convert a Helm chart into a hull package
-- [Package anatomy](../guides/packages.md) — what every file in a hull package is for
-- [Quickstart](../guides/quickstart.md) — full create → install → upgrade walkthrough
+- [`init`](init.md) — scaffold from a chosen built-in template
+- [`lint`](lint.md) — validate the scaffolded package
+- [`template`](template.md) — render it to manifests
+- [`values`](values.md) — how values files and `--set` overrides merge

@@ -2,11 +2,22 @@
 
 ## Synopsis
 
-`hull marketplace` browses and installs signed plugins from a hull marketplace index. Subcommands search the index and verify a plugin's signature against the marketplace's trusted keys.
+`hull marketplace` helps you find signed plugins from a marketplace index and
+check one before you trust it. A marketplace is a JSON index listing plugins,
+their download URLs, and per-plugin signatures. The default index is
+`https://plugins.hull.dev/index.json`; point `--index` at another one to use a
+private marketplace.
 
-## When to use it
+The marketplace commands don't install anything themselves — once you've found
+and verified a plugin, you install it with
+[`hull plugin install`](plugin-install.md).
 
-Use to discover community-published plugins and install them with provenance verification.
+## Subcommands
+
+| Command | What it does |
+|---|---|
+| [`search`](marketplace-search.md) | List plugins in a marketplace index, optionally filtered by keyword |
+| [`verify`](marketplace-verify.md) | Check a downloaded plugin archive against the index's digest and signature |
 
 ## Usage
 
@@ -14,39 +25,17 @@ Use to discover community-published plugins and install them with provenance ver
 hull marketplace [command]
 ```
 
-## Subcommands
-
-- [`hull marketplace verify`](marketplace-verify.md) — Verify a downloaded plugin archive against a marketplace index
-
-## Flags
-
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | — | — | help for marketplace |
-
-## Persistent flags inherited from `hull`
-
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | — | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
-
-## Examples
-
-Search the marketplace:
+A typical flow: find a plugin, verify the archive you downloaded, then install
+it.
 
 ```sh
 hull marketplace search backup
-```
-
-Verify a plugin before installing:
-
-```sh
-hull marketplace verify backup-plugin-1.0.tgz
+hull marketplace verify --archive ./backup.tar.gz --name backup
+hull plugin install ./backup
 ```
 
 ## See also
 
-- [`plugin`](plugin.md)
+- [`plugin`](plugin.md) — install and manage plugins
+- [`marketplace search`](marketplace-search.md)
+- [`marketplace verify`](marketplace-verify.md)

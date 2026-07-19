@@ -1,12 +1,18 @@
 # hull registry
 
-## Synopsis
+Push and pull hull package archives to and from OCI-compliant registries.
 
-`hull registry` is the OCI counterpart of `hull repo`. Subcommands log in/out of registries, push and pull artifacts, and list available tags. Distinct from `hull repo` which targets HTTP repositories.
+`hull registry` groups the OCI transport commands. Use it to move a packaged
+`.hull.tgz` archive into a container registry (GHCR, ECR, Docker Hub, Harbor,
+Zot, …) and to fetch one back. Credentials come from `hull login`; the artifact
+is stored as a standard OCI blob under the reference you name.
 
-## When to use it
+## Subcommands
 
-Use when distributing packages via OCI registries.
+| Command | What it does |
+|---|---|
+| [`registry push`](registry-push.md) | Upload a local `.hull.tgz` archive to an OCI reference. |
+| [`registry pull`](registry-pull.md) | Download a package from an OCI reference, optionally verifying its cosign signature first. |
 
 ## Usage
 
@@ -14,43 +20,18 @@ Use when distributing packages via OCI registries.
 hull registry [command]
 ```
 
-## Subcommands
-
-- [`hull registry push`](registry-push.md) — push a `.hull.tgz` archive to an OCI registry
-- [`hull registry pull`](registry-pull.md) — pull a package from an OCI registry
-
-## Flags
-
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-h, --help` | — | — | help for registry |
-
-## Persistent flags inherited from `hull`
-
-| Flag | Type | Description |
-|---|---|---|
-| `--debug` | — | enable debug output |
-| `--kube-context` | string | Kubernetes context to use |
-| `--kubeconfig` | string | path to kubeconfig file |
-| `-n, --namespace` | string | Kubernetes namespace |
-
-## Examples
-
-Push a packaged archive to OCI:
+Log in once per host, then push or pull:
 
 ```sh
-hull registry push ./build/my-app-1.0.0.hull.tgz oci://ghcr.io/example/charts/my-app
-```
-
-Pull a package from OCI:
-
-```sh
-hull registry pull oci://ghcr.io/example/charts/my-app:1.0.0 -d ./pulled
+hull login ghcr.io -u USER --password-stdin
+hull registry push ./my-app-1.0.0.hull.tgz oci://ghcr.io/example/charts/my-app:1.0.0
+hull registry pull  oci://ghcr.io/example/charts/my-app:1.0.0 -d ./pulled
 ```
 
 ## See also
 
-- [`pull`](pull.md)
-- [`registry push`](registry-push.md)
-- [`login`](login.md)
-- [OCI guide](../guides/oci.md)
+- [`login`](login.md) — store registry credentials
+- [`logout`](logout.md) — remove stored credentials
+- [`package`](package.md) — build the `.hull.tgz` archive you push
+- [`publish`](publish.md) — publish to an HTTP API registry instead of OCI
+- [`pull`](pull.md) — fetch from OCI or an HTTP repository by chart name

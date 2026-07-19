@@ -65,14 +65,63 @@ hull drift [package-path] [flags]
 | `--kubeconfig` | string | path to kubeconfig file |
 | `-n, --namespace` | string | Kubernetes namespace |
 
-## Examples
+## Worked example — the three inputs and how they produce the output
 
-Three-way drift for the package in the current directory (in → out):
+`drift` compares **three** things. To read its output you have to see all three
+inputs. Here they are, concretely.
+
+**INPUT 1 — the package (`./mychart`), as it renders right now.** You just
+edited `values.yaml`, changing the tier label from `stable` to `canary`, but you
+have NOT applied it yet:
+
+```yaml
+# hull template ./mychart  →  the Service it produces
+apiVersion: v1
+kind: Service
+metadata:
+  name: mychart
+  namespace: apps
+  labels:
+    tier: canary        # ← you changed this locally (was stable)
+spec:
+  ports:
+    - port: 8080
+```
+
+**INPUT 2 — the recorded state** (what hull stored the last time you applied).
+It still has the old label AND the original port:
+
+```yaml
+# what hull recorded at the last apply
+metadata:
+  labels:
+    tier: stable        # old label — your canary edit isn't applied yet
+spec:
+  ports:
+    - port: 8080        # original port
+```
+
+**INPUT 3 — the live cluster** (what's actually running). Someone ran
+`kubectl edit svc/mychart` and changed the port to 9090 behind hull's back:
+
+```yaml
+# what is actually in the cluster right now
+metadata:
+  labels:
+    tier: stable        # matches the state — nobody touched the label live
+spec:
+  ports:
+    - port: 9090        # ← changed in the cluster, out of band
+```
+
+**Now run it:**
 
 ```sh
 cd ./mychart
 hull drift
 ```
+
+**OUTPUT:**
 
 ```
 drift: package ↔ state ↔ running   (release mychart)
@@ -90,9 +139,26 @@ drift: package ↔ state ↔ running   (release mychart)
 1 cluster-drift, 1 pending-apply, 0 orphan, 0 missing, 0 to-create.
 ```
 
-Reading it: the port was changed **in the cluster** (state and package agree at
-8080, running is 9090). The label is a **local edit** not yet applied (package
-is `canary`, state and running are `stable`).
+**Tracing every line back to the inputs:**
+
+| Output line | Which inputs it read | Why that verdict |
+|---|---|---|
+| `spec.ports.0.port` `package: 8080` | INPUT 1 → 8080 | the port in your rendered package |
+| `state: 8080` | INPUT 2 → 8080 | the port hull recorded |
+| `running: 9090` | INPUT 3 → 9090 | the port live in the cluster |
+| `⚠ cluster drift` | state (8080) **≠** running (9090) | the cluster changed vs what hull recorded → **someone edited it out of band** |
+| `metadata.labels.tier` `package: canary` | INPUT 1 → canary | your local edit |
+| `state: stable` / `running: stable` | INPUTs 2 & 3 → stable | state and cluster still agree |
+| `→ pending apply` | package (canary) **≠** state (stable) | your edit is not applied yet (`hull upgrade` would apply it) |
+
+**The two rules, restated:**
+
+- **`⚠ cluster drift`** fires when **state ≠ running** — the live cluster no
+  longer matches what hull last applied (something changed it outside hull).
+- **`→ pending apply`** fires when **package ≠ state** — your local package has
+  edits you haven't applied. This is exactly what `hull plan` previews.
+
+A field where all three agree is not shown. The summary line counts each class.
 
 Detect drift, then converge the cluster back to the stored state:
 

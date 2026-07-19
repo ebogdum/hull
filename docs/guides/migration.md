@@ -1,111 +1,186 @@
-# Migrate a Helm chart to a hull package — Helm to hull conversion guide
+# Migrate a Helm chart to a hull package
 
-This guide walks through converting (migrating) an existing **Helm chart** into a **hull package** using the `hull migrate` command. If you're searching for a **Helm chart converter**, **Helm chart migration tool**, or **how to import a Helm chart into hull**, you're in the right place.
+`hull migrate` converts an existing **Helm chart** directory into a **hull
+package**: it walks the chart (`Chart.yaml`, `templates/`, `values.yaml`,
+`crds/`, `_helpers.tpl`, `NOTES.txt`) and emits an equivalent hull package,
+rewriting Go-template constructs to hull's `${...}` expressions where it can.
+Anything it cannot translate cleanly is flagged for manual review.
 
-The `hull migrate` command translates a Helm chart directory into a hull package: it walks the Helm chart structure (`Chart.yaml`, `templates/`, `values.yaml`, `crds/`, `_helpers.tpl`, `NOTES.txt`, `requirements.yaml`/`Chart.lock`) and emits an equivalent hull package, rewriting go-template constructs to hull's `${...}` expressions where possible. Constructs the migrator can't translate cleanly are flagged in a `hull-migration.md` review report inside the output directory.
-
-The companion `hull helm-compat` command provides the inverse direction: rendering a hull package as a Helm-compatible artifact for downstream tooling that consumes Helm output (e.g. `helm template`-driven CI gates, Helm-aware OCI scanners, GitOps tools that only know Helm).
-
-> **Glossary search hooks:** "Helm to hull migration", "convert Helm chart", "Helm chart to hull package", "Helm migrator", "Helm chart converter", "import Helm chart into hull", "Helm-compat hull", "Helm chart hull replacement".
+The command reference is [`hull migrate`](../cli/migrate.md). The companion
+[`hull helm-compat`](../cli/helm-compat.md) runs an unmodified Helm chart under
+hull without converting it, and exports a hull package back into Helm's layout.
 
 ## When to migrate
 
-You have an upstream Helm chart you want to install through hull, **and** any of:
+Migrate when you want to **own** an upstream chart as a hull package long-term
+and any of these apply:
 
-- You want hull's expression syntax instead of go-templates with sprig.
+- You want hull's `${...}` expressions instead of Go-templates with sprig.
 - You want hull's ownership labels, drift detection, audit trail, and signing.
-- You want to slot the upstream chart into a hull workspace alongside hull-native packages.
+- You want to slot the chart into a hull workspace beside hull-native packages.
 
-If you only need a one-shot install of an upstream chart, you don't need migration — `hull install` accepts a Helm chart's tarball or directory directly via the compatibility layer (`hull helm-compat install`).
+If you only need to run an upstream chart as-is, you do not need migration —
+`hull helm-compat install` renders and installs the unmodified chart under a
+hull release record.
 
-Migration is for **owning** the package long-term.
+## Size the job first
 
-## The migrator's job
+Before converting, `hull helm-compat report` counts the Go-template logic in a
+chart so you can gauge the work:
 
-`hull migrate` walks a Helm chart directory and produces a hull package directory:
+```sh
+hull helm-compat report ./redis
+```
+
+```json
+{
+  "chart": "redis",
+  "templates": 4,
+  "goTemplateBlocks": 36,
+  "notes": [
+    "_helpers.tpl: 7 Go-template blocks (run 'hull migrate' to translate)",
+    "deployment.yaml: 21 Go-template blocks (run 'hull migrate' to translate)"
+  ],
+  "recommendations": [
+    "Run 'hull migrate ./redis' to translate go-template blocks to hull's ${...} syntax"
+  ]
+}
+```
+
+A chart with few `{{ ... }}` blocks converts with little effort; one packed with
+them needs more review afterward.
+
+## What the migrator produces
 
 | Helm input | hull output |
 |---|---|
-| `Chart.yaml` | `hull.yaml` (with `apiVersion: hull/v1`, layers translated, dependencies translated) |
-| `values.yaml` | `values.yaml` (unchanged) |
-| `values.schema.json` | `values.schema.json` (unchanged) |
+| `Chart.yaml` | `hull.yaml` (`apiVersion: hull/v1`, layers/dependencies translated) |
+| `values.yaml` | `values.yaml` |
+| `values.schema.json` | `values.schema.json` |
 | `templates/*.yaml` | `templates/*.yaml` (template body rewritten where possible) |
-| `templates/_helpers.tpl` | `templates/_helpers.yaml` (named templates → hull `${define}` partials) |
-| `templates/NOTES.txt` | `notes.yaml` |
-| `crds/*.yaml` | `crds/*.yaml` (unchanged) |
-| `Chart.lock` | `hull.lock` |
-| `requirements.yaml` (Helm v2) | layers entries in `hull.yaml` |
+| `templates/_helpers.tpl` | `templates/_helpers.yaml` (named-template partials) |
+| `templates/NOTES.txt` | `templates/notes.yaml` |
+| `templates/tests/*` | `tests/*` |
+| `crds/*.yaml` | `crds/*.yaml` |
 
-Inside templates, the migrator translates a curated set of go-template constructs to hull expressions:
+Inside templates it rewrites a curated set of Go-template constructs to hull
+expressions — for example:
 
 | Go-template | hull |
 |---|---|
 | `{{ .Values.x }}` | `${values.x}` |
 | `{{ .Release.Name }}` | `${release.name}` |
-| `{{ if .Values.enabled }}` ... `{{ end }}` | `${if .Values.enabled}` ... `${end}` |
-| `{{ range .Values.items }}` ... `{{ end }}` | `${range .Values.items}` ... `${end}` |
-| `{{ toYaml .Values.x | nindent 4 }}` | `${values.x | toYaml | nindent 4}` |
-| `{{ printf "%s-%s" $a $b }}` | `${printf "%s-%s" $a $b}` |
-| `{{ tpl .Values.foo . }}` | `${tpl .Values.foo}` |
-| `{{ lookup "v1" "Secret" "default" "x" }}` | `${lookup "v1" "Secret" "default" "x"}` |
+| `{{ if .Values.enabled }}` … `{{ end }}` | `${if .Values.enabled}` … `${end}` |
+| `{{ range .Values.items }}` … `{{ end }}` | `${range .Values.items}` … `${end}` |
 | `{{ include "named" . }}` | `${include "named"}` |
-| `{{ index .Values "foo" "bar" }}` | `${get .Values "foo" "bar"}` |
+| `{{ toYaml .Values.x \| nindent 4 }}` | `${values.x \| toYaml \| nindent 4}` |
 
-Conditional blocks, range blocks, and sprig functions (math, string, regex, date, crypto, etc.) are passed through with hull's equivalents — hull's expression engine implements every sprig function the migrator can't otherwise translate.
+Constructs it cannot translate cleanly — some multi-variable `with`/`range`
+forms, heavily nested conditionals around YAML structure, or calls to functions
+hull does not implement — are left unchanged and listed for manual review.
 
-## Things the migrator can't translate
+## Convert
 
-When the migrator finds a construct it can't translate cleanly, it emits the original token unchanged AND adds an entry to the migration's review list:
-
-- `{{ with $foo := ... }}` over multiple variables.
-- `{{ range $i, $e := ... }}` with explicit index naming.
-- Heavily nested conditionals around YAML structure (which sometimes break a 1:1 line translation).
-- Calls to functions hull doesn't implement (rare; the migrator names them).
-
-## Workflow
+Point `hull migrate` at the chart. The package is written into `-o/--output`
+(default `<chart-name>-hull/`); the conversion report prints to stdout — there
+is no separate report file:
 
 ```sh
-hull migrate ./upstream-chart -d ./migrated/
-# walks upstream-chart, writes ./migrated/<chart-name>/...
-hull lint ./migrated/<chart-name>
-# review hull-migration.md inside the output:
-cat ./migrated/<chart-name>/hull-migration.md
+hull migrate ./redis -o ./redis-hull
 ```
 
-The `hull-migration.md` report lists:
+```
+Output: ./redis-hull
+Converted 8 files:
+  - hull.yaml
+  - values.yaml
+  - templates/_helpers.yaml
+  - templates/deployment.yaml
+  - templates/service.yaml
+  - tests/test-connection.yaml
+  - templates/notes.yaml
+  - .hullignore
 
-- What the migrator did automatically.
-- What it left for manual review (with file + line references).
-- Warnings (deprecated fields, ambiguous translations).
+Migration complete.
+```
 
-## Iteration
+When a construct needs a human, the report names the file, line, and reason
+before `Migration complete.`:
 
-The migrator is deterministic and idempotent — re-running on the same input produces the same output. It's safe to:
+```
+Items requiring manual review (1):
+  templates/deployment.yaml:24 — unsupported Helm function 'lookup'
+    {{- $existing := lookup "v1" "Secret" .Release.Namespace "redis" }}
+```
 
-1. Run `hull migrate` to get a starting point.
-2. Hand-edit the output to clean up review items.
-3. Commit.
-4. Re-run later when the upstream chart releases a new version, diff the output, and apply the upstream changes selectively.
+Use `--dry-run` to see the report without writing anything, or `--strict` to
+fail the command on any template that cannot be fully auto-converted (useful as
+a CI gate).
 
-## Compatibility layer (the inverse)
-
-`hull helm-compat` exposes hull packages to Helm-aware tooling:
+## Review and finish
 
 ```sh
-hull helm-compat template my-app ./my-pkg                # Helm-shaped manifest output
-hull helm-compat export ./my-pkg -d ./helm-export/       # writes a Helm chart skeleton
+ls ./redis-hull
 ```
 
-This is useful when CI runs `helm-diff`, `helm-conftest`, or `helm-secrets`-style tools and you want hull to look like the Helm chart it would have been. The export is best-effort — hull's `${...}` expressions may end up as inert literal strings in the exported chart, so the export is suitable for static analysis but not for actual Helm install.
+```
+hull.yaml  values.yaml  templates/  tests/  .hullignore
+```
+
+Lint the result, then resolve any flagged items by hand:
+
+```sh
+hull lint ./redis-hull
+```
+
+The migrator is deterministic and idempotent — re-running on the same input
+produces the same output — so the workflow is: migrate, hand-edit the review
+items, commit, then re-migrate when the upstream chart releases a new version
+and diff to apply the changes.
+
+## The inverse: expose a hull package to Helm tooling
+
+`hull helm-compat` also runs the other direction, for CI or GitOps tools that
+only understand Helm:
+
+```sh
+# Render an unmodified Helm chart to manifests (like `helm template`):
+hull helm-compat render ./redis
+
+# Install an unmodified Helm chart under a hull release record:
+hull helm-compat install redis ./redis -n data
+
+# Export a hull package AS a Helm v3 chart:
+hull helm-compat export ./my-pkg --out ./helm-export
+```
+
+```
+exported helm-compat chart to ./helm-export
+```
+
+`export` writes a `Chart.yaml` (`apiVersion: v2`) plus the copied `values.yaml`
+and `templates/` tree. It is best-effort: hull's `${...}` expressions are copied
+verbatim and resolve only under hull, so the exported chart is suitable for
+static analysis, not for `helm install`. To hand Helm fully rendered manifests,
+pre-render with `hull template` and ship the output.
 
 ## Limits
 
-The migrator is **template translation**, not behaviour translation. If the upstream chart relies on:
+`hull migrate` is **template translation**, not behaviour emulation:
 
-- A specific Helm release-name format used by clients later (`my-release-redis-master`), the migrated hull package generates the same names (release name interpolation works the same way), but workflow tooling that scrapes the release record may need updates.
-- The Helm release Secret schema (`sh.helm.release.v1.<release>.v<rev>`), hull's Secret schema differs (`hull.v1.<release>.v<rev>` with hull-specific labels). Tools reading Helm releases directly need updating; `hull helm-compat list` returns the hull-style data.
-- A specific Helm-only test pattern (`helm test` with `helm.sh/hook: test`), `hull migrate` rewrites it to `$hook: test` with hull's lifecycle.
+- Release-name interpolation works the same way, so generated resource names
+  match — but tooling that scrapes hull's release records reads a hull-specific
+  schema, not Helm's `sh.helm.release.v1...` secrets.
+- Helm's `helm.sh/hook: test` test pattern is rewritten to hull's lifecycle.
 
-## Summary
+The goal is a working hull package you then own and maintain — not to run Helm
+under hull forever.
 
-`hull migrate` exists because most Kubernetes packages today are Helm charts and there's no point making users rewrite from scratch. It's a translation tool, not a 1:1 emulator — the goal is to land a working hull package that you then own, not to run Helm under hull forever.
+## See also
+
+- [`hull migrate`](../cli/migrate.md) — command reference
+- [`hull helm-compat`](../cli/helm-compat.md) — render/install/export/report
+- [`hull helm-compat export`](../cli/helm-compat-export.md) ·
+  [`hull helm-compat report`](../cli/helm-compat-report.md)
+- [`hull lint`](../cli/lint.md) — validate the converted package
+- [Workspaces](workspaces.md) — slot the migrated package into a workspace
