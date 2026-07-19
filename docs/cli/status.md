@@ -1,3 +1,8 @@
+---
+title: "hull status"
+parent: "CLI"
+---
+{% raw %}
 # hull status
 
 `hull status` prints the recorded metadata for one release — its status,
@@ -101,3 +106,4 @@ Pass `--revision 2` and the same fields are read from revision 2 instead, so
 - [`history`](history.md) — every revision of this release, not just one
 - [`drift`](drift.md) — compare this record against the live cluster
 - [`get`](get.md) — the full record: values, manifest, hooks, notes
+{% endraw %}

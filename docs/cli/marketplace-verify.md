@@ -1,3 +1,8 @@
+---
+title: "hull marketplace verify"
+parent: "CLI"
+---
+{% raw %}
 # hull marketplace verify
 
 ## Synopsis
@@ -74,3 +79,4 @@ hull marketplace verify \
 
 - [`marketplace search`](marketplace-search.md) — find a plugin and its signer
 - [`plugin install`](plugin-install.md)
+{% endraw %}

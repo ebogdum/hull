@@ -1,3 +1,8 @@
+---
+title: "hull releases plan"
+parent: "CLI"
+---
+{% raw %}
 # hull releases plan
 
 ## Synopsis
@@ -85,3 +90,4 @@ it is placed after both. That is exactly the order `hull releases install` and
 - [`releases`](releases.md) — the parent command and the spec-file format
 - [`install`](releases-install.md) — apply the set in this order
 - [`upgrade`](releases-upgrade.md) — upgrade the set in this order
+{% endraw %}

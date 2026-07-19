@@ -1,3 +1,8 @@
+---
+title: "hull publish"
+parent: "CLI"
+---
+{% raw %}
 # hull publish
 
 Upload a packaged `.hull.tgz` archive to a registry.
@@ -81,3 +86,4 @@ Published my-app@1.0.0 to OCI registry oci://ghcr.io/example/charts/my-app
 - [`login`](login.md) — store the credential the upload uses
 - [`pull`](pull.md) — download a published package
 - [`registry`](registry.md)
+{% endraw %}

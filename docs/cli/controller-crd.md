@@ -1,3 +1,8 @@
+---
+title: "hull controller crd"
+parent: "CLI"
+---
+{% raw %}
 # hull controller crd
 
 ## Synopsis
@@ -104,3 +109,4 @@ hull controller crd | kubectl apply -f -
 - [`controller install-crd`](controller-install-crd.md) — apply this CRD directly
 - [`controller run`](controller-run.md) — start the reconciler once the CRD exists
 - [`controller`](controller.md) — operator overview
+{% endraw %}

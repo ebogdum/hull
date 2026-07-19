@@ -1,3 +1,8 @@
+---
+title: "hull search repo"
+parent: "CLI"
+---
+{% raw %}
 # hull search repo
 
 `hull search repo` searches the repositories you have added with
@@ -61,3 +66,4 @@ into `hull pull` or `hull install`.
 - [`repo`](repo.md) — add the repositories searched here
 - [`pull`](pull.md) — download a matched chart
 - [`install`](install.md) — install a matched package
+{% endraw %}

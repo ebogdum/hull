@@ -1,3 +1,8 @@
+---
+title: "hull uninstall"
+parent: "CLI"
+---
+{% raw %}
 # hull uninstall
 
 `hull uninstall` deletes a release's resources from the cluster, keeping its
@@ -116,3 +121,4 @@ hull uninstall web -n apps --ignore-not-found
 - [`purge`](purge.md) — remove hull-managed resources in bulk
 - [`history`](history.md) — list a release's revisions
 - [`rollback`](rollback.md) — restore an earlier revision (needs kept history)
+{% endraw %}

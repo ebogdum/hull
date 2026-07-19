@@ -1,3 +1,8 @@
+---
+title: "hull controller install-crd"
+parent: "CLI"
+---
+{% raw %}
 # hull controller install-crd
 
 ## Synopsis
@@ -71,3 +76,4 @@ hull controller install-crd --kube-context prod
 - [`controller crd`](controller-crd.md) — print the CRD without applying it
 - [`controller run`](controller-run.md) — start the reconciler once the CRD exists
 - [`controller`](controller.md) — operator overview
+{% endraw %}

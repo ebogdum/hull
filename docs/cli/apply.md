@@ -1,3 +1,8 @@
+---
+title: "hull apply"
+parent: "CLI"
+---
+{% raw %}
 # hull apply
 
 `hull apply` executes a plan artifact produced by `hull plan`, applying the
@@ -95,3 +100,4 @@ regenerate the plan to pick up the edit.
 - [`plan`](plan.md) — produce the plan artifact `apply` consumes
 - [`upgrade`](upgrade.md) — single-step upgrade without a plan file
 - [`diff`](diff.md) — compare packages, manifests, or revisions
+{% endraw %}

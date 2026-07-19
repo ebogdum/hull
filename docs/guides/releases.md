@@ -1,3 +1,8 @@
+---
+title: "Orchestrate cross-release dependencies"
+parent: "Guides"
+---
+{% raw %}
 # Orchestrate cross-release dependencies
 
 `hull-releases.yaml` rolls out **several separate releases** with one
@@ -212,3 +217,4 @@ that workspace alongside a few external releases.
 - [Workspaces](workspaces.md) — richer orchestration for one repo of packages
 - [`hull install`](../cli/install.md) · [`hull upgrade`](../cli/upgrade.md) —
   the single-release commands each entry runs
+{% endraw %}

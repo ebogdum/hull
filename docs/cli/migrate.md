@@ -1,3 +1,8 @@
+---
+title: "hull migrate"
+parent: "CLI"
+---
+{% raw %}
 # hull migrate
 
 Convert a Helm chart directory on disk into an equivalent hull package
@@ -113,3 +118,4 @@ hull lint ./redis-hull
 - [`helm-compat`](helm-compat.md) — run an unmodified Helm chart without converting it
 - [`adopt`](adopt.md) — bring existing in-cluster resources under hull management
 - [`lint`](lint.md) — validate the converted package
+{% endraw %}

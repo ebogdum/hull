@@ -1,3 +1,8 @@
+---
+title: "hull-releases.yaml"
+parent: "Reference"
+---
+{% raw %}
 # hull-releases.yaml
 
 Declares a set of separate releases and the order they must be applied in. The
@@ -91,3 +96,4 @@ removes them in reverse.
 - [`hull releases status`](../cli/releases-status.md) — show each release's revision.
 - [hull-workspace.yaml](hull-workspace-yaml.md) — related packages from one repo.
 - [Releases guide](../guides/releases.md).
+{% endraw %}

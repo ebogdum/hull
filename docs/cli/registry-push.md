@@ -1,3 +1,8 @@
+---
+title: "hull registry push"
+parent: "CLI"
+---
+{% raw %}
 # hull registry push
 
 Upload a packaged `.hull.tgz` archive to an OCI registry reference.
@@ -79,3 +84,4 @@ hull registry push ./dist/my-app-1.0.0.hull.tgz \
 - [`registry pull`](registry-pull.md) — fetch it back
 - [`publish`](publish.md) — push to an HTTP API registry instead
 - [`install`](install.md) — install a package from a reference
+{% endraw %}

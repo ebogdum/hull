@@ -1,3 +1,8 @@
+---
+title: "hull sbom"
+parent: "CLI"
+---
+{% raw %}
 # hull sbom
 
 `hull sbom` emits a CycloneDX 1.5 JSON software bill of materials for a
@@ -102,3 +107,4 @@ hull sbom web-api --revision 2 -n prod | grype sbom:-
 - [`get manifest`](get-manifest.md) — the rendered manifest the images come from
 - [`audit`](audit.md) — the change trail for the same release
 - [`scan`](scan.md) — refactor packages, not scan for vulnerabilities
+{% endraw %}

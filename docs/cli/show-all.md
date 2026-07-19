@@ -1,3 +1,8 @@
+---
+title: "hull show all"
+parent: "CLI"
+---
+{% raw %}
 # hull show all
 
 `hull show all` prints a package's chart metadata, default values, and README
@@ -67,3 +72,4 @@ bottom. For a single slice, use the dedicated subcommand.
 - [`show chart`](show-chart.md) — chart metadata only
 - [`show values`](show-values.md) — default values only
 - [`show readme`](show-readme.md) — README only
+{% endraw %}

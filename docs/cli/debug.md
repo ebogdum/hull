@@ -1,3 +1,8 @@
+---
+title: "hull debug"
+parent: "CLI"
+---
+{% raw %}
 # hull debug
 
 `hull debug` renders a package and reports how it was resolved — the merged
@@ -102,3 +107,4 @@ footer.
 - [`dev`](dev.md) — re-render continuously while you edit
 - [`lint`](lint.md) — validate the package
 - [`values`](values.md) — how values files and `--set` overrides merge
+{% endraw %}

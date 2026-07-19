@@ -1,3 +1,8 @@
+---
+title: "hull helm-compat export"
+parent: "CLI"
+---
+{% raw %}
 # hull helm-compat export
 
 `hull helm-compat export` writes a hull package out as a Helm v3 chart so that
@@ -82,3 +87,4 @@ recognises the chart. Alongside it sit the copied `values.yaml` and the
 - [`helm-compat report`](helm-compat-report.md)
 - [`migrate`](migrate.md) — the reverse direction: Helm chart to hull package
 - [`template`](template.md) — render a hull package to static manifests
+{% endraw %}

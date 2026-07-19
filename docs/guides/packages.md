@@ -1,3 +1,8 @@
+---
+title: "Package anatomy"
+parent: "Guides"
+---
+{% raw %}
 # Package anatomy
 
 A hull package is a directory containing a package manifest (`hull.yaml`), a
@@ -267,3 +272,4 @@ hull install my-app ./pulled/my-pkg -n prod --create-namespace
 See [`hull package`](../cli/package.md), [`hull publish`](../cli/publish.md),
 and [`hull pull`](../cli/pull.md). The per-command reference lives under
 [`docs/cli/`](../cli/README.md).
+{% endraw %}

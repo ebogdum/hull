@@ -1,3 +1,8 @@
+---
+title: "hull dependency tree"
+parent: "CLI"
+---
+{% raw %}
 # hull dependency tree
 
 `hull dependency tree` prints the composition chain of a package: every layer
@@ -85,3 +90,4 @@ actually points at.
 - [`dependency list`](dependency-list.md) — the flat table view with lock status
 - [`dependency build`](dependency-build.md) — download the packages in this tree
 - [`template`](template.md) — render the package with its layers merged in
+{% endraw %}

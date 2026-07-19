@@ -1,3 +1,10 @@
+---
+title: "CLI"
+nav_order: 3
+has_children: true
+has_toc: false
+---
+{% raw %}
 # CLI reference
 
 Hull's command-line interface is rooted at `hull`. Every command has a `--help` output reachable via `hull <cmd> --help`; this directory holds the long-form reference for each, with description, every flag, and examples.
@@ -165,3 +172,4 @@ Hull prints both the textual error and the numeric code to stderr; scripts can b
 | [`version`](version.md) | Print the hull version. |
 | [`env`](env.md) | Print hull's environment information. |
 | [`completion`](completion.md) | Generate shell completion scripts. |
+{% endraw %}

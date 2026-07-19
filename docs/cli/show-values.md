@@ -1,3 +1,8 @@
+---
+title: "hull show values"
+parent: "CLI"
+---
+{% raw %}
 # hull show values
 
 `hull show values` prints a package's default `values.yaml` unchanged.
@@ -53,3 +58,4 @@ use [`hull values`](values.md) instead.
 - [`show`](show.md) — the show command index
 - [`values`](values.md) — merged, override-aware values
 - [`show all`](show-all.md) — chart, values, and README together
+{% endraw %}

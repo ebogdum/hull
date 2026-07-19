@@ -1,3 +1,8 @@
+---
+title: "hull create"
+parent: "CLI"
+---
+{% raw %}
 # hull create
 
 `hull create` scaffolds a ready-to-edit hull package — a working
@@ -82,3 +87,4 @@ the manifest update.
 - [`lint`](lint.md) — validate the scaffolded package
 - [`template`](template.md) — render it to manifests
 - [`values`](values.md) — how values files and `--set` overrides merge
+{% endraw %}

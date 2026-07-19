@@ -1,3 +1,8 @@
+---
+title: "hull workspace upgrade"
+parent: "CLI"
+---
+{% raw %}
 # hull workspace upgrade
 
 ## Synopsis
@@ -102,3 +107,4 @@ nothing; failures are always reported.
 - [`workspace plan`](workspace-plan.md) — preview the order first
 - [`workspace diff`](workspace-diff.md) — see what the upgrade would change
 - [`upgrade`](upgrade.md) — the single-release analogue
+{% endraw %}

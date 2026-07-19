@@ -1,3 +1,8 @@
+---
+title: "hull show"
+parent: "CLI"
+---
+{% raw %}
 # hull show
 
 `hull show` prints a package's metadata, values, README, or CRDs without
@@ -27,3 +32,4 @@ hull show <chart|values|readme|crds|all> <package-path> [flags]
 - [`values`](values.md) — resolve and trace the merged values
 - [`template`](template.md) — render the package's manifests
 - [`lint`](lint.md) — validate a package
+{% endraw %}

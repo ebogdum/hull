@@ -1,3 +1,8 @@
+---
+title: "hull completion"
+parent: "CLI"
+---
+{% raw %}
 # hull completion
 
 `hull completion` prints a shell completion script for `bash`, `zsh`, `fish`,
@@ -73,3 +78,4 @@ Start a new shell (or re-source your profile) and `hull <Tab>` completes.
 
 - [`env`](env.md) — the resolved paths and environment hull is using
 - [`version`](version.md) — confirm the build you generated completions from
+{% endraw %}

@@ -1,3 +1,8 @@
+---
+title: "hull init"
+parent: "CLI"
+---
+{% raw %}
 # hull init
 
 `hull init` scaffolds a new package from a built-in template chosen with
@@ -79,3 +84,4 @@ lint and render whichever template you picked.
 - [`lint`](lint.md) — validate the scaffolded package
 - [`template`](template.md) — render it to manifests
 - [`install`](install.md) — install the package as a release
+{% endraw %}

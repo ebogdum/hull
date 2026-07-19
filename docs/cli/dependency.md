@@ -1,3 +1,8 @@
+---
+title: "hull dependency"
+parent: "CLI"
+---
+{% raw %}
 # hull dependency
 
 `hull dependency` manages the **layers** and **required packages** your
@@ -39,3 +44,4 @@ versions, and `build` to fetch them.
 - [`install`](install.md) — install the package once its dependencies resolve
 - [`template`](template.md) — render the package with its layers merged in
 - [`repo`](repo.md) — manage the registries that registry sources pull from
+{% endraw %}

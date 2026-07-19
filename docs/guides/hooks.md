@@ -1,3 +1,8 @@
+---
+title: "Hooks"
+parent: "Guides"
+---
+{% raw %}
 # Hooks
 
 Hooks are Job- or Pod-shaped resources that hull runs at specific points in a
@@ -300,3 +305,4 @@ Pairs naturally with `requires:` in `hull.yaml`.
 - [Package anatomy](packages.md) — `hooks/` and `tests/` in context.
 - [`hull test`](../cli/test.md) and [`hull get`](../cli/get.md).
 - [Template expressions](../templates/expressions.md) — the hook body language.
+{% endraw %}

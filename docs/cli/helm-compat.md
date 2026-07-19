@@ -1,3 +1,8 @@
+---
+title: "hull helm-compat"
+parent: "CLI"
+---
+{% raw %}
 # hull helm-compat
 
 ## Synopsis
@@ -26,3 +31,4 @@ hull helm-compat <command> <path>
 
 - [`migrate`](migrate.md) — convert a Helm chart into a native hull package
 - [`template`](template.md) — render a hull package to manifests
+{% endraw %}

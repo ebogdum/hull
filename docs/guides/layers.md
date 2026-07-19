@@ -1,3 +1,8 @@
+---
+title: "Layers"
+parent: "Guides"
+---
+{% raw %}
 # Layers
 
 A layer is another hull package whose templates and values compose into the
@@ -292,3 +297,4 @@ identity, not the layer's. See [Layers in templates](../templates/layers.md).
 - [Values](values.md) — how layer values merge and the `!` pin.
 - [`hull.yaml` reference](../reference/hull-yaml.md) — the `layers` schema.
 - [Layers in templates](../templates/layers.md) — the rendering mechanics.
+{% endraw %}

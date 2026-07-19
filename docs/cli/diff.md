@@ -1,3 +1,8 @@
+---
+title: "hull diff"
+parent: "CLI"
+---
+{% raw %}
 # hull diff
 
 ## Synopsis
@@ -105,3 +110,4 @@ hull diff ./chart-v1 ./chart-v2 --smart=false
 - [`plan`](plan.md) — compare a package against the recorded state
 - [`drift`](drift.md) — compare package, state, and the live cluster
 - [`template`](template.md) — render a package to a manifest
+{% endraw %}

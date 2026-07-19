@@ -1,3 +1,8 @@
+---
+title: "hull get all"
+parent: "CLI"
+---
+{% raw %}
 # hull get all
 
 `hull get all` prints the entire stored release record in one document —
@@ -96,3 +101,4 @@ hello:4
 
 - [`get`](get.md) — the parent command
 - [`get manifest`](get-manifest.md) · [`get values`](get-values.md) · [`get hooks`](get-hooks.md) · [`get metadata`](get-metadata.md) · [`get notes`](get-notes.md) — the individual slices
+{% endraw %}

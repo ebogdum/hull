@@ -1,3 +1,8 @@
+---
+title: "Comparison"
+nav_order: 7
+---
+{% raw %}
 # Hull vs Helm vs Kustomize vs kapp vs kpt — Kubernetes packaging and deployment tools compared
 
 A side-by-side look at hull and the other tools in the Kubernetes
@@ -306,3 +311,4 @@ minimal `hull.yaml`, and `hull install`.
 - [Use cases](use-cases.md) — by role
 - [FAQ](faq.md) — common questions
 - [Documentation map](../README.md#documentation-map)
+{% endraw %}

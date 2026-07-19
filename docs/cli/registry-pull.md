@@ -1,3 +1,8 @@
+---
+title: "hull registry pull"
+parent: "CLI"
+---
+{% raw %}
 # hull registry pull
 
 Download a hull package from an OCI reference, optionally verifying its cosign
@@ -84,3 +89,4 @@ Pulled oci://ghcr.io/example/charts/my-app:1.0.0 to ./pulled/my-app-1.0.0.hull.t
 - [`registry push`](registry-push.md) — upload a package
 - [`pull`](pull.md) — general pull (OCI or HTTP repo) with version resolution
 - [`install`](install.md) — install a package from a reference
+{% endraw %}

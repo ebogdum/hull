@@ -1,3 +1,8 @@
+---
+title: "hull upgrade"
+parent: "CLI"
+---
+{% raw %}
 # hull upgrade
 
 `hull upgrade` renders a package and applies it to an existing release as the
@@ -146,3 +151,4 @@ hull upgrade web ./web -n apps --install
 - [`plan`](plan.md) — preview what an upgrade would change
 - [`history`](history.md) — list a release's revisions
 - [`canary`](canary.md) — staged, health-gated rollout
+{% endraw %}

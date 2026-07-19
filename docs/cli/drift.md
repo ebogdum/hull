@@ -1,3 +1,8 @@
+---
+title: "hull drift"
+parent: "CLI"
+---
+{% raw %}
 # hull drift
 
 ## Synopsis
@@ -172,3 +177,4 @@ hull reconcile mychart
 - [`plan`](plan.md) — package vs state (the 2-way subset)
 - [`diff`](diff.md) — compare two files/versions (no cluster)
 - [`reconcile`](reconcile.md) — re-apply the stored state onto the cluster
+{% endraw %}

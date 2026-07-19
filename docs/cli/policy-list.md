@@ -1,3 +1,8 @@
+---
+title: "hull policy list"
+parent: "CLI"
+---
+{% raw %}
 # hull policy list
 
 ## Synopsis
@@ -66,3 +71,4 @@ min-replicas-3 [warn]
 - [`policy`](policy.md) — the parent command
 - [`policy check`](policy-check.md) — actually evaluate the rules
 - [`install`](install.md) — apply the package once it passes
+{% endraw %}

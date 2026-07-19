@@ -1,3 +1,8 @@
+---
+title: "hull adopt"
+parent: "CLI"
+---
+{% raw %}
 # hull adopt
 
 `hull adopt` claims resources that already exist in the cluster and records
@@ -102,3 +107,4 @@ object.
 - [`diff`](diff.md) — compare packages, manifests, or revisions
 - [`upgrade`](upgrade.md) — roll a new package version onto the release
 - [`uninstall`](uninstall.md) — remove an adopted release
+{% endraw %}

@@ -1,3 +1,8 @@
+---
+title: "hull dependency build"
+parent: "CLI"
+---
+{% raw %}
 # hull dependency build
 
 `hull dependency build` resolves every layer and required package declared in
@@ -81,3 +86,4 @@ proof the fetched bytes match what was pinned.
 - [`dependency update`](dependency-update.md) — pin versions into `hull.lock` first
 - [`dependency tree`](dependency-tree.md) — see what will be downloaded
 - [`install`](install.md) — install the package once dependencies are built
+{% endraw %}

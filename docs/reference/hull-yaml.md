@@ -1,3 +1,8 @@
+---
+title: "hull.yaml"
+parent: "Reference"
+---
+{% raw %}
 # hull.yaml
 
 The package manifest at the root of every hull package. It declares the
@@ -133,3 +138,4 @@ and its templates render into the single `platform-api` release, while
 - [`hull install`](../cli/install.md) / [`hull template`](../cli/template.md) — render and apply using the manifest.
 - [`hull env`](../cli/env.md) — work with declared environments.
 - [Layers guide](../guides/layers.md), [Packages guide](../guides/packages.md).
+{% endraw %}

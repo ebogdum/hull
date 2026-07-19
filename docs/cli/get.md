@@ -1,3 +1,8 @@
+---
+title: "hull get"
+parent: "CLI"
+---
+{% raw %}
 # hull get
 
 `hull get` reads back what hull recorded for a release. Each subcommand prints
@@ -45,3 +50,4 @@ subcommands inherit the global flags (`-n/--namespace`, `--kube-context`,
 - [`history`](history.md) — list a release's revisions
 - [`status`](status.md) — current status of a release
 - [`releases`](releases.md) — list installed releases
+{% endraw %}

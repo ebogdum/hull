@@ -1,3 +1,8 @@
+---
+title: "hull search"
+parent: "CLI"
+---
+{% raw %}
 # hull search
 
 ## Synopsis
@@ -24,3 +29,4 @@ hull search <command> <keyword>
 - [`repo`](repo.md) — add and manage the repositories `search repo` reads
 - [`pull`](pull.md) — download a chart you found
 - [`install`](install.md) — install a package as a release
+{% endraw %}

@@ -1,3 +1,8 @@
+---
+title: "hull policy"
+parent: "CLI"
+---
+{% raw %}
 # hull policy
 
 ## Synopsis
@@ -45,3 +50,4 @@ hull policy list ./mychart
 - [`template`](template.md) — render the manifest you pipe into `check`
 - [`install`](install.md) — apply the package once it passes
 - [`package verify`](package-verify.md) — verify a package's signature
+{% endraw %}

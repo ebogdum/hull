@@ -1,3 +1,8 @@
+---
+title: "Sign and verify packages"
+parent: "Guides"
+---
+{% raw %}
 # Sign and verify packages
 
 Hull signs packages two ways: a detached PGP `.prov` provenance file that hull
@@ -209,3 +214,4 @@ hull sbom my-app -n prod > my-app.cdx.json
 - [`hull registry pull`](../cli/registry-pull.md) — cosign verification on pull
 - [`hull audit`](../cli/audit.md) · [`hull sbom`](../cli/sbom.md)
 - [OCI](oci.md) · [Repositories](repositories.md)
+{% endraw %}

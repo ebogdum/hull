@@ -1,3 +1,8 @@
+---
+title: "hull keyring add"
+parent: "CLI"
+---
+{% raw %}
 # hull keyring add
 
 ## Synopsis
@@ -77,3 +82,4 @@ hull will now accept packages signed by this key when you pass `--verify`.
 - [`keyring list`](keyring-list.md) — confirm the key installed
 - [`keyring remove`](keyring-remove.md) — revoke the key later
 - [`package verify`](package-verify.md) — verify a package against the keyring
+{% endraw %}

@@ -1,3 +1,8 @@
+---
+title: "hull plugin"
+parent: "CLI"
+---
+{% raw %}
 # hull plugin
 
 ## Synopsis
@@ -42,3 +47,4 @@ hull backup --release web        # "backup" now runs as a hull command
 - [`marketplace`](marketplace.md) — find and verify signed plugins to install
 - [`plugin install`](plugin-install.md)
 - [`plugin list`](plugin-list.md)
+{% endraw %}

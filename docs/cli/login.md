@@ -1,3 +1,8 @@
+---
+title: "hull login"
+parent: "CLI"
+---
+{% raw %}
 # hull login
 
 Store credentials for a package registry so later pushes and pulls to that
@@ -83,3 +88,4 @@ echo "$REGISTRY_PASSWORD" | hull login registry.example.com -u alice --password-
 - [`pull`](pull.md) — download a chart from a repository
 - [`install`](install.md)
 - [`registry`](registry.md)
+{% endraw %}

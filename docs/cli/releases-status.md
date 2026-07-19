@@ -1,3 +1,8 @@
+---
+title: "hull releases status"
+parent: "CLI"
+---
+{% raw %}
 # hull releases status
 
 ## Synopsis
@@ -88,3 +93,4 @@ record in the cluster, so it reports `not deployed` — a signal to run
 - [`install`](releases-install.md) — install any that are not deployed
 - [`upgrade`](releases-upgrade.md) — bring them all to current
 - [`list`](list.md) — list every release in the cluster
+{% endraw %}

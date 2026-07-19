@@ -1,3 +1,8 @@
+---
+title: "hull env"
+parent: "CLI"
+---
+{% raw %}
 # hull env
 
 `hull env` prints the resolved paths and settings hull uses, one
@@ -72,3 +77,4 @@ the values you expect.
 
 - [`config`](config.md) — build a values file interactively
 - [`version`](version.md) — print the hull build version
+{% endraw %}

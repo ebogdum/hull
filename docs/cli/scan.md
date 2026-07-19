@@ -1,3 +1,8 @@
+---
+title: "hull scan"
+parent: "CLI"
+---
+{% raw %}
 # hull scan
 
 `hull scan` looks across a directory of hull packages, finds the values and
@@ -102,3 +107,4 @@ for p in ./packages/*/; do hull lint "$p"; done
 
 - [`lint`](lint.md) — validate the rewritten packages
 - [`dependency`](dependency.md) — manage the layers scan produces
+{% endraw %}

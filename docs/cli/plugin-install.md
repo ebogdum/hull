@@ -1,3 +1,8 @@
+---
+title: "hull plugin install"
+parent: "CLI"
+---
+{% raw %}
 # hull plugin install
 
 ## Synopsis
@@ -87,3 +92,4 @@ Installed plugin: backup v0.4.0
 - [`plugin update`](plugin-update.md)
 - [`plugin remove`](plugin-remove.md)
 - [`marketplace search`](marketplace-search.md) — discover signed plugins
+{% endraw %}

@@ -1,3 +1,8 @@
+---
+title: "hull version"
+parent: "CLI"
+---
+{% raw %}
 # hull version
 
 `hull version` prints the version, git commit, and build date of the `hull`
@@ -48,3 +53,4 @@ hull version dev (commit unknown, built unknown)
 ## See also
 
 - [`env`](env.md) — the resolved paths and environment hull is using
+{% endraw %}

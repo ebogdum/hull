@@ -1,3 +1,8 @@
+---
+title: "hull releases"
+parent: "CLI"
+---
+{% raw %}
 # hull releases
 
 ## Synopsis
@@ -95,3 +100,4 @@ hull releases status
 - [`install`](install.md) — install a single release
 - [`upgrade`](upgrade.md) — upgrade a single release
 - [`list`](list.md) — list every release in the cluster
+{% endraw %}

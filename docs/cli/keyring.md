@@ -1,3 +1,8 @@
+---
+title: "hull keyring"
+parent: "CLI"
+---
+{% raw %}
 # hull keyring
 
 ## Synopsis
@@ -39,3 +44,4 @@ hull keyring remove jane.pub
 - [`keyring remove`](keyring-remove.md) — revoke a signer
 - [`package verify`](package-verify.md) — verify a package against the keyring
 - [`login`](login.md) — store registry credentials
+{% endraw %}

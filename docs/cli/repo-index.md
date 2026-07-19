@@ -1,3 +1,8 @@
+---
+title: "hull repo index"
+parent: "CLI"
+---
+{% raw %}
 # hull repo index
 
 Build an `index.yaml` for a directory of packaged archives.
@@ -59,3 +64,4 @@ Index signed: /home/you/build/index.yaml.prov
 - [`package`](package.md) — build the `.hull.tgz` archives to index
 - [`publish`](publish.md) — push an archive to a registry
 - [`repo add`](repo-add.md) — register the served repository on a client
+{% endraw %}

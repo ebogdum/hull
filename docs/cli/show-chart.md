@@ -1,3 +1,8 @@
+---
+title: "hull show chart"
+parent: "CLI"
+---
+{% raw %}
 # hull show chart
 
 `hull show chart` prints a package's `hull.yaml` metadata unchanged.
@@ -49,3 +54,4 @@ Pipe it through `yq` to pull a single field, for example
 - [`show`](show.md) — the show command index
 - [`show values`](show-values.md) — the package's default values
 - [`show all`](show-all.md) — chart, values, and README together
+{% endraw %}

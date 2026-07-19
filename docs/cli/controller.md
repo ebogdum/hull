@@ -1,3 +1,8 @@
+---
+title: "hull controller"
+parent: "CLI"
+---
+{% raw %}
 # hull controller
 
 ## Synopsis
@@ -63,3 +68,4 @@ hull controller run              # long-running; deploy it as a Deployment
 - [`install`](install.md) — the one-shot install the controller runs for you
 - [`upgrade`](upgrade.md) — the one-shot upgrade the controller runs for you
 - [`reconcile`](reconcile.md) — manually converge a single release
+{% endraw %}

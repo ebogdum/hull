@@ -1,3 +1,8 @@
+---
+title: "hull-workspace.yaml"
+parent: "Reference"
+---
+{% raw %}
 # hull-workspace.yaml
 
 Groups several hull packages from one directory tree into a workspace that
@@ -102,3 +107,4 @@ keep declared order):
 - [`hull workspace status`](../cli/workspace-status.md).
 - [hull-releases.yaml](hull-releases-yaml.md) — releases of unrelated packages.
 - [Workspaces guide](../guides/workspaces.md).
+{% endraw %}

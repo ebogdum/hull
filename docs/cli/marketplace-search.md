@@ -1,3 +1,8 @@
+---
+title: "hull marketplace search"
+parent: "CLI"
+---
+{% raw %}
 # hull marketplace search
 
 ## Synopsis
@@ -59,3 +64,4 @@ hull marketplace search --index https://plugins.example.internal/index.json
 
 - [`marketplace verify`](marketplace-verify.md) — check an archive before installing
 - [`plugin install`](plugin-install.md)
+{% endraw %}

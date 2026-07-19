@@ -1,3 +1,8 @@
+---
+title: "values.yaml"
+parent: "Reference"
+---
+{% raw %}
 # values.yaml
 
 The package's default configuration, sitting beside `hull.yaml` at the package
@@ -123,3 +128,4 @@ activates any layer whose `condition` is `cache.enabled`.
 - [`hull template`](../cli/template.md) / [`hull install`](../cli/install.md) — render values into manifests.
 - [`hull show values`](../cli/show-values.md), [`hull get values`](../cli/get-values.md) — inspect defaults and effective values.
 - [Values guide](../guides/values.md), [Layers guide](../guides/layers.md).
+{% endraw %}

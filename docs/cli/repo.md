@@ -1,3 +1,8 @@
+---
+title: "hull repo"
+parent: "CLI"
+---
+{% raw %}
 # hull repo
 
 `hull repo` manages the list of HTTP package repositories that hull searches
@@ -32,3 +37,4 @@ hull repo [command] [flags]
 - [`search`](search.md) — find charts across your registered repositories
 - [`pull`](pull.md) — download a chart from a repository
 - [`install`](install.md) — install a package as a release
+{% endraw %}

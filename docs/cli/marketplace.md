@@ -1,3 +1,8 @@
+---
+title: "hull marketplace"
+parent: "CLI"
+---
+{% raw %}
 # hull marketplace
 
 ## Synopsis
@@ -39,3 +44,4 @@ hull plugin install ./backup
 - [`plugin`](plugin.md) — install and manage plugins
 - [`marketplace search`](marketplace-search.md)
 - [`marketplace verify`](marketplace-verify.md)
+{% endraw %}

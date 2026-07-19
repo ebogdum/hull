@@ -1,3 +1,8 @@
+---
+title: "hull helm-compat report"
+parent: "CLI"
+---
+{% raw %}
 # hull helm-compat report
 
 `hull helm-compat report` analyses a Helm chart and reports how much
@@ -70,3 +75,4 @@ run next.
 - [`helm-compat export`](helm-compat-export.md)
 - [`migrate`](migrate.md) — actually translate the chart to a hull package
 - [`template`](template.md) — render a hull package to manifests
+{% endraw %}

@@ -1,3 +1,8 @@
+---
+title: "Plugins"
+parent: "Guides"
+---
+{% raw %}
 # Plugins
 
 A plugin adds a new top-level command to hull. Once installed, `hull greet` or
@@ -225,3 +230,4 @@ and prefer [signed marketplace plugins](../cli/marketplace-verify.md).
 - [`hull plugin`](../cli/plugin.md) — the plugin management commands
 - [`hull plugin install`](../cli/plugin-install.md) · [`list`](../cli/plugin-list.md) · [`update`](../cli/plugin-update.md) · [`remove`](../cli/plugin-remove.md)
 - [`hull marketplace`](../cli/marketplace.md) — discover and verify signed plugins
+{% endraw %}

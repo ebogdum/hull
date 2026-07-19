@@ -1,3 +1,8 @@
+---
+title: "Migrate a Helm chart to a hull package"
+parent: "Guides"
+---
+{% raw %}
 # Migrate a Helm chart to a hull package
 
 `hull migrate` converts an existing **Helm chart** directory into a **hull
@@ -184,3 +189,4 @@ under hull forever.
   [`hull helm-compat report`](../cli/helm-compat-report.md)
 - [`hull lint`](../cli/lint.md) — validate the converted package
 - [Workspaces](workspaces.md) — slot the migrated package into a workspace
+{% endraw %}

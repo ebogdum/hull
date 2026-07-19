@@ -1,3 +1,8 @@
+---
+title: "hull plugin update"
+parent: "CLI"
+---
+{% raw %}
 # hull plugin update
 
 ## Synopsis
@@ -56,3 +61,4 @@ hull plugin up backup
 - [`plugin install`](plugin-install.md)
 - [`plugin list`](plugin-list.md)
 - [`plugin remove`](plugin-remove.md)
+{% endraw %}

@@ -1,3 +1,8 @@
+---
+title: "hull purge"
+parent: "CLI"
+---
+{% raw %}
 # hull purge
 
 Find every release hull has installed anywhere in the cluster, uninstall each
@@ -128,3 +133,4 @@ Each release's stored revisions are deleted along with it, so
 - [`uninstall`](uninstall.md) — remove one named release instead of all of them
 - [`prune`](prune.md) — trim old revisions of a release without removing it
 - [`list`](list.md) — see what is in scope before you purge
+{% endraw %}

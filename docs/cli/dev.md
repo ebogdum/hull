@@ -1,3 +1,8 @@
+---
+title: "hull dev"
+parent: "CLI"
+---
+{% raw %}
 # hull dev
 
 `hull dev` watches a package directory and re-renders it on every file
@@ -79,3 +84,4 @@ prints nothing new; a broken edit prints `--- render error ---` instead.
 - [`debug`](debug.md) — render with a resolution trace
 - [`lint`](lint.md) — validate the package
 - [`values`](values.md) — how values files and `--set` overrides merge
+{% endraw %}
